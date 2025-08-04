@@ -1,11 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Head } from '@inertiajs/react';
-
+import MockupViewer3D from '@/Components/Editor/MockupViewer3D';
 // Impor semua komponen yang dibutuhkan
 import MotifLibrary from '@/Components/Editor/MotifLibrary';
 import CanvasArea from '@/Components/Editor/CanvasArea';
 import PropertiesToolbar from '@/Components/Editor/PropertiesToolbar';
 import LayerPanel from '@/Components/Editor/LayerPanel';
+
+    function downloadURI(uri, name) {
+        const link = document.createElement('a');
+        link.download = name;
+        link.href = uri;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+}
 
 // Data motif statis sebagai pengganti database
 const staticMotifs = [
@@ -25,15 +34,29 @@ export default function DesignEditor({ initialDesign }) {
     const [selectedId, setSelectedId] = useState(null);
     const [designName, setDesignName] = useState(initialDesign?.name || 'Desain Batik Baru');
 
+    const stageRef = useRef();
+    const [show3DModal, setShow3DModal] = useState(false);
+    const [patternFor3D, setPatternFor3D] = useState('');
     // Fungsi untuk menyimpan desain (saat ini hanya simulasi)
     const handleSave = () => {
-        console.log("Menyimpan desain...");
+        if (!stageRef.current) {
+            return;
+        }
+        
+        // ✨ 2. Ekspor canvas yang terlihat menjadi JPG
+        const dataURL = stageRef.current.toDataURL({
+            mimeType: 'image/jpeg',
+            quality: 0.9, // Kualitas JPG (0.0 - 1.0)
+            pixelRatio: 2, // Ekspor dengan resolusi 2x lebih tinggi agar tajam
+        });
+        downloadURI(dataURL, `${designName}.jpg`);
+        
+        // Anda tetap bisa menyimpan data JSON ke database jika perlu
+        console.log("Menyimpan data JSON...");
         console.log({
             name: designName,
             canvas_data: JSON.stringify(canvasObjects),
         });
-        alert('Desain disimpan! (Cek console log)');
-        // TODO: Ganti dengan logika POST ke API Laravel
     };
 
     // Fungsi untuk membersihkan semua objek dari canvas
@@ -42,6 +65,15 @@ export default function DesignEditor({ initialDesign }) {
             setCanvasObjects([]);
             setSelectedId(null);
         }
+    };
+
+    const handleShow3D = () => {
+        if (!stageRef.current) return;
+        
+        // Ekspor canvas menjadi gambar untuk dijadikan tekstur
+        const patternDataURL = stageRef.current.toDataURL({ pixelRatio: 1 });
+        setPatternFor3D(patternDataURL);
+        setShow3DModal(true);
     };
 
     // Fungsi untuk memperbarui properti objek dari toolbar
@@ -117,6 +149,8 @@ export default function DesignEditor({ initialDesign }) {
     // Mendapatkan objek yang dipilih berdasarkan ID
     const selectedObject = canvasObjects.find(obj => obj.id === selectedId);
 
+
+
     return (
         <>
             <Head title="Editor Desain Batik" />
@@ -126,10 +160,13 @@ export default function DesignEditor({ initialDesign }) {
                         type="text" 
                         value={designName} 
                         onChange={(e) => setDesignName(e.target.value)}
-                        className="font-bold border rounded px-2 py-1"
+                        className="font-bold border rounded px-2 py-1 text-black"
                     />
                     <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded transition-colors">
                         Simpan
+                    </button>
+                    <button onClick={handleShow3D} className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1 rounded">
+                        Lihat 3D
                     </button>
                 </header>
 
@@ -137,14 +174,6 @@ export default function DesignEditor({ initialDesign }) {
                     {/* Sidebar Kiri */}
                     <aside className="w-64 bg-white p-4 overflow-y-auto shadow-md flex flex-col">
                         <MotifLibrary motifs={staticMotifs} />
-                        <div className="mt-auto pt-4">
-                            <LayerPanel
-                                objects={canvasObjects}
-                                selectedId={selectedId}
-                                onSelect={setSelectedId}
-                                onClear={handleClearCanvas}
-                            />
-                        </div>
                     </aside>
 
                     {/* Area Canvas Utama */}
@@ -154,6 +183,7 @@ export default function DesignEditor({ initialDesign }) {
                             setObjects={setCanvasObjects}
                             selectedId={selectedId}
                             setSelectedId={setSelectedId}
+                            stageRef={stageRef}
                         />
                     </main>
 
@@ -163,9 +193,30 @@ export default function DesignEditor({ initialDesign }) {
                             selectedObject={selectedObject}
                             onUpdate={updateObjectProperties}
                         />
+                        <div className="mt-auto pt-4">
+                            <LayerPanel
+                                objects={canvasObjects}
+                                selectedId={selectedId}
+                                onSelect={setSelectedId}
+                                onClear={handleClearCanvas}
+                            />
+                        </div>
                     </aside>
                 </div>
             </div>
+            {show3DModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-2xl w-3/4 h-3/4 p-4 relative">
+                        <button 
+                            onClick={() => setShow3DModal(false)}
+                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 z-10"
+                        >
+                            X
+                        </button>
+                        <MockupViewer3D patternUrl={patternFor3D} />
+                    </div>
+                </div>
+            )}
         </>
     );
 }
