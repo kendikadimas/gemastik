@@ -18,6 +18,7 @@
                 }
             })();
         </script>
+        <script src="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js" defer ></script>
 
         {{-- Inline style to set the HTML background color based on our theme in app.css --}}
         <style>
