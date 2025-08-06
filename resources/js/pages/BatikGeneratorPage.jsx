@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
-// import { Client } from "@gradio/client";
+import axios from 'axios'; // Hanya butuh axios
 
 export default function BatikGeneratorPage({ auth }) {
     const [prompt, setPrompt] = useState('');
@@ -10,39 +10,20 @@ export default function BatikGeneratorPage({ auth }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!prompt) {
-            setError('Deskripsi batik tidak boleh kosong.');
-            return;
-        }
-
         setIsLoading(true);
         setResultImage(null);
         setError('');
 
-        if (!window.gradio_client) {
-        setError("Gradio client tidak berhasil dimuat. Coba refresh halaman.");
-        setIsLoading(false);
-        return;
-    }
-
         try {
-            const { client } = window.gradio_client;
+            // Panggil backend Laravel Anda sendiri
+            const response = await axios.post('/api/batik-generator', { prompt });
 
-            // Hubungkan ke Hugging Face Space Anda
-            const app = await client("https://kendika-trial.hf.space/");
-        
-            // Panggil fungsi 'predict'
-            const result = await app.predict("/predict", {
-            prompt: prompt,
-        });
-            console.log('API Result:', result);
-
-            const imageData = result.data[0];
-            setResultImage(imageData);
+            // Ambil data gambar dari respons Laravel
+            setResultImage(response.data.image_data);
 
         } catch (err) {
             console.error("API Error:", err);
-            setError('Gagal menghasilkan gambar. Silakan coba lagi.');
+            setError('Gagal menghasilkan gambar. Server AI mungkin sibuk.');
         } finally {
             setIsLoading(false);
         }

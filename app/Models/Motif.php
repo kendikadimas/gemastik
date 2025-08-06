@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Motif extends Model
 {
@@ -11,8 +12,17 @@ class Motif extends Model
 
     protected $fillable = [
         'name',
-        'category',
-        'preview_image_path',
-        'file_path',
+        'description',
+        'image_url',
+        'is_ai',
+        'user_id',
     ];
+
+    use HasFactory;
+    protected $guarded = ['id'];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

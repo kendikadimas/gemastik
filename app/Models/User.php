@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -21,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -44,5 +46,29 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // Pengguna bisa memiliki banyak desain
+    public function designs(): HasMany
+    {
+        return $this->hasMany(Design::class);
+    }
+
+    // Pengguna bisa mengunggah banyak motif
+    public function motifs(): HasMany
+    {
+        return $this->hasMany(Motif::class);
+    }
+    
+    // Pesanan produksi yang dibuat oleh pengguna (sebagai customer)
+    public function productionOrders(): HasMany
+    {
+        return $this->hasMany(Production::class, 'user_id');
+    }
+
+    // Pekerjaan produksi yang dikerjakan oleh pengguna (sebagai konveksi)
+    public function convectionJobs(): HasMany
+    {
+        return $this->hasMany(Production::class, 'convection_user_id');
     }
 }

@@ -11,10 +11,12 @@ class Design extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'name',
+        'title',
+        'description',
+        'image_url',
         'canvas_data',
-        'preview_image_path',
+        'user_id',
+        'preview_3d_models_id',
     ];
 
     protected $casts = [
@@ -24,5 +26,10 @@ class Design extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function preview3DModel(): BelongsTo
+    {
+        return $this->belongsTo(Preview3DModel::class, 'preview_3d_models_id');
     }
 }
