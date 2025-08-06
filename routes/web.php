@@ -7,6 +7,10 @@ use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\DashboardController;
+
+
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
