@@ -4,11 +4,11 @@ export default function Sidebar() {
   const { url } = usePage();
 
   const menuItems = [
-    { name: 'Batik Saya', href: '/user/dashboard', icon: '/images/sideicon/home.png' },
-    { name: 'Motif', href: '/user/motif', icon: '/images/sideicon/motif.png' },
-    { name: 'Konveksi', href: '/user/konveksi', icon: '/images/sideicon/konveksi.png' },
-    { name: 'Produksi', href: '/user/produksi', icon: '/images/sideicon/produksi.png' },
-    { name: 'Bantuan', href: '/user/bantuan', icon: '/images/sideicon/bantuan.png' },
+    { name: 'Batik Saya', href: '/dashboard', icon: '/images/sideicon/home.png' },
+    { name: 'Motif', href: '/motif', icon: '/images/sideicon/motif.png' },
+    { name: 'Konveksi', href: '/konveksi', icon: '/images/sideicon/konveksi.png' },
+    { name: 'Produksi', href: '/produksi', icon: '/images/sideicon/produksi.png' },
+    { name: 'Bantuan', href: '/bantuan', icon: '/images/sideicon/bantuan.png' },
   ];
 
   return (
