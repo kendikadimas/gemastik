@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\BatikGeneratorController;
 use App\Http\Controllers\DesignEditorController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -15,15 +17,33 @@ Route::get('/', function () {
     ]);
 });
 
-// Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
-
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    return Inertia::render('BatikGeneratorPage'); // Breeze membutuhkan halaman Dashboard
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+
+// Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+Route::get('/batik-generator', function () {
+    return Inertia::render('BatikGeneratorPage');
+})->middleware(['auth', 'verified'])->name('batik.generator');
+
+
+Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+// Rute API untuk generate batik
+Route::post('/api/batik-generator', [BatikGeneratorController::class, 'generate']);
+
 Route::middleware('auth')->group(function () {
-    Route::get('/editor/{design?}', [DesignEditorController::class, 'show'])->name('editor.show');
+    Route::get('/dashboard', function () {
+        return redirect()->route('editor.show');
+    });
+
+
+
+Route::get('/editor/{design?}', [DesignEditorController::class, 'show'])->name('editor.show');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

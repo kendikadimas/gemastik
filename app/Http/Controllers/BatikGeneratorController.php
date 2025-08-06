@@ -1,33 +1,60 @@
 <?php
 
-namespace App\Http\Controllers; 
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class BatikGeneratorController extends Controller
 {
     public function generate(Request $request)
     {
         $request->validate(['prompt' => 'required|string|max:1000']);
-        $prompt = $request->input('prompt');
+        $userPrompt = $request->input('prompt');
 
-        // Path ke interpreter python. Sesuaikan jika perlu (misal 'python3')
-        $pythonPath = 'py'; 
-        $scriptPath = storage_path('app/python/batik_generator.py');
+        try {
+            // =================================================================
+            // LANGSUNG PANGGIL HUGGING FACE API DENGAN PROMPT PENGGUNA
+            // =================================================================
+            $hfApiKey = env('HF_API_KEY');
+            if (empty($hfApiKey)) {
+                throw new \Exception("HF_API_KEY tidak ditemukan di file .env.");
+            }
+            
+            // Kita tetap perkaya promptnya sedikit agar hasilnya lebih bagus
+            $finalPrompt = "masterpiece, best quality, a traditional Indonesian batik motif showing ${userPrompt}, vector art, clean lines, sogan color palette (brown, indigo, cream), on a plain white background";
 
-        $process = new Process([$pythonPath, $scriptPath, $prompt]);
-        $process->setTimeout(360); // Timeout 6 menit untuk AI
-        $process->run();
+            Log::info('Sending to Hugging Face: ' . $finalPrompt);
 
-        if (!$process->isSuccessful()) {
-            // Jika script Python error, kirim pesan errornya ke frontend
-            return response()->json(['error' => 'Gagal menjalankan script AI.', 'details' => $process->getErrorOutput()], 500);
+            // Model Teks-ke-Gambar yang populer di Hugging Face
+            $modelUrl = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0";
+
+            $response = Http::withToken($hfApiKey)
+                ->timeout(120) // Waktu tunggu 2 menit
+                ->post($modelUrl, [
+                    'inputs' => $finalPrompt,
+                ]);
+
+            if ($response->failed()) {
+                Log::error('Hugging Face API Error: ' . $response->body());
+                throw new \Exception('Model AI gambar sedang sibuk atau gagal merespons.');
+            }
+
+            // API ini mengembalikan data gambar mentah (blob), kita ubah ke Base64
+            $imageData = base64_encode($response->body());
+
+            return response()->json([
+                'image_data' => 'data:image/jpeg;base64,' . $imageData,
+                'prompt_used' => $finalPrompt
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('AI Generation Error: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Gagal berkomunikasi dengan layanan AI.',
+                'details' => $e->getMessage()
+            ], 500);
         }
-        
-        // Kirim output (Data URL gambar) dari script Python ke frontend
-        return response()->json(['image_data' => $process->getOutput()]);
     }
 }
