@@ -1,108 +1,73 @@
 // Pages/User/Konveksi.jsx
 import UserLayout from '@/layouts/User/Layout';
-import { Search, ChevronDown, MapPin, Star, Shield, CheckCircle, Briefcase, Award, Users, TrendingUp } from 'lucide-react';
+import { Search, ChevronDown, MapPin, Star, CheckCircle, Briefcase, Award, Users, TrendingUp, Phone } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { router } from '@inertiajs/react';
 
-export default function Konveksi() {
+export default function Konveksi({ konveksis, stats, filters, locations }) {
+  const [searchQuery, setSearchQuery] = useState(filters.search || '');
+  const [selectedLocation, setSelectedLocation] = useState(filters.location || 'all');
+  const [loading, setLoading] = useState(false);
+
   const statsCards = [
     {
       title: 'Total Partner',
-      value: '850',
-      subtitle: 'Motif Batik',
+      value: stats.total_partners.toString(),
+      subtitle: 'Partner Konveksi',
       color: '#BA682A',
       icon: <Briefcase className="w-8 h-8 text-white" />
     },
     {
       title: 'Terverifikasi',
-      value: '67',
-      subtitle: 'Style Batik',
+      value: stats.verified_partners.toString(),
+      subtitle: 'Partner Verified',
       color: '#FF8C42',
       icon: <Award className="w-8 h-8 text-white" />
     },
     {
       title: 'Lokasi',
-      value: '28',
+      value: stats.total_locations.toString(),
       subtitle: 'Daerah',
       color: '#82C341',
       icon: <Users className="w-8 h-8 text-white" />
     },
     {
-      title: 'Penjualan',
-      value: '90',
-      subtitle: 'Trend Motif',
+      title: 'Rating Rata-rata',
+      value: stats.average_rating.toString(),
+      subtitle: 'Rating',
       color: '#FFD23F',
       icon: <TrendingUp className="w-8 h-8 text-white" />
     }
   ];
 
-  const konveksiData = [
-    {
-      id: 1,
-      name: 'Zarstronot Cloth',
-      description: 'Realisasikan ide yang ada kembankan dan menjadi kenyataan',
-      location: 'Sokaraja',
-      rating: 4.9,
-      isVerified: true,
-      colors: ['#F9DC5C', '#FF8C42', '#F9DC5C', '#FF8C42'],
-      image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop'
-    },
-    {
-      id: 2,
-      name: 'Batik Nusantara Co.',
-      description: 'Spesialis batik tradisional dengan kualitas premium terbaik',
-      location: 'Yogyakarta',
-      rating: 4.8,
-      isVerified: true,
-      colors: ['#82C341', '#FF8C42', '#F9DC5C', '#BA682A'],
-      image: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=300&fit=crop'
-    },
-    {
-      id: 3,
-      name: 'Majesty Batik House',
-      description: 'Konveksi modern dengan sentuhan batik kontemporer',
-      location: 'Solo',
-      rating: 4.7,
-      isVerified: false,
-      colors: ['#BA682A', '#F9DC5C', '#82C341', '#FF8C42'],
-      image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop'
-    },
-    {
-      id: 4,
-      name: 'Heritage Cloth Works',
-      description: 'Melestarikan warisan budaya melalui karya batik berkualitas',
-      location: 'Pekalongan',
-      rating: 4.6,
-      isVerified: true,
-      colors: ['#FF8C42', '#82C341', '#F9DC5C', '#BA682A'],
-      image: 'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=400&h=300&fit=crop'
-    },
-    {
-      id: 5,
-      name: 'Royal Batik Studio',
-      description: 'Layanan konveksi batik eksklusif untuk semua kebutuhan',
-      location: 'Jakarta',
-      rating: 4.5,
-      isVerified: true,
-      colors: ['#82C341', '#BA682A', '#FF8C42', '#F9DC5C'],
-      image: 'https://images.unsplash.com/photo-1594736797933-d0f59ba4e24d?w=400&h=300&fit=crop'
-    },
-    {
-      id: 6,
-      name: 'Artisan Batik Gallery',
-      description: 'Kolaborasi seni dan teknologi untuk batik masa depan',
-      location: 'Bandung',
-      rating: 4.4,
-      isVerified: false,
-      colors: ['#F9DC5C', '#82C341', '#BA682A', '#FF8C42'],
-      image: 'https://images.unsplash.com/photo-1590736969955-71cc94901144?w=400&h=300&fit=crop'
-    }
-  ];
+  const handleSearch = () => {
+    setLoading(true);
+    router.get('/konveksi', {
+      search: searchQuery,
+      location: selectedLocation !== 'all' ? selectedLocation : null,
+    }, {
+      preserveState: true,
+      onFinish: () => setLoading(false)
+    });
+  };
 
-  const filterOptions = [
-    { label: 'Semua Lokasi', value: 'all' },
-    { label: 'Yogyakarta', value: 'yogya' },
-    { label: 'Solo', value: 'solo' },
-    { label: 'Pekalongan', value: 'pekalongan' }
-  ];
+  const handleLocationChange = (location) => {
+    setSelectedLocation(location);
+    setLoading(true);
+    router.get('/konveksi', {
+      search: searchQuery,
+      location: location !== 'all' ? location : null,
+    }, {
+      preserveState: true,
+      onFinish: () => setLoading(false)
+    });
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   return (
     <UserLayout title="Konveksi">
@@ -119,6 +84,9 @@ export default function Konveksi() {
           <input
             type="text"
             placeholder="Jelajahi keragaman batik nusantara"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={handleKeyPress}
             className="w-full pl-12 pr-6 py-4 border-2 rounded-2xl text-lg focus:outline-none focus:border-[#BA682A] transition-colors"
             style={{ borderColor: '#BA682A' }}
           />
@@ -127,14 +95,40 @@ export default function Konveksi() {
 
       {/* Filter Dropdowns */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {['Kategori Konveksi', 'Lokasi Daerah', 'Rating & Ulasan'].map((filter, index) => (
-          <div key={index} className="relative">
-            <select className="w-full px-4 py-3 border-2 rounded-xl appearance-none bg-white focus:outline-none focus:border-[#BA682A] transition-colors text-gray-700">
-              <option>{filter}</option>
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-          </div>
-        ))}
+        <div className="relative">
+          <select 
+            value={selectedLocation}
+            onChange={(e) => handleLocationChange(e.target.value)}
+            className="w-full px-4 py-3 border-2 rounded-xl appearance-none bg-white focus:outline-none focus:border-[#BA682A] transition-colors text-gray-700"
+          >
+            <option value="all">Semua Lokasi</option>
+            {locations.map((location) => (
+              <option key={location.value} value={location.value}>
+                {location.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+        </div>
+        
+        <div className="relative">
+          <select className="w-full px-4 py-3 border-2 rounded-xl appearance-none bg-white focus:outline-none focus:border-[#BA682A] transition-colors text-gray-700">
+            <option>Rating & Ulasan</option>
+            <option value="4.5">4.5+ Rating</option>
+            <option value="4.0">4.0+ Rating</option>
+            <option value="3.5">3.5+ Rating</option>
+          </select>
+          <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+        </div>
+
+        <div className="relative">
+          <select className="w-full px-4 py-3 border-2 rounded-xl appearance-none bg-white focus:outline-none focus:border-[#BA682A] transition-colors text-gray-700">
+            <option>Status Verifikasi</option>
+            <option value="verified">Terverifikasi</option>
+            <option value="all">Semua</option>
+          </select>
+          <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -163,9 +157,17 @@ export default function Konveksi() {
         ))}
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#BA682A] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Memuat data konveksi...</p>
+        </div>
+      )}
+
       {/* Konveksi Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-        {konveksiData.map((konveksi) => (
+        {konveksis.data.map((konveksi) => (
           <div
             key={konveksi.id}
             className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group hover:-translate-y-2 border border-gray-100"
@@ -178,10 +180,10 @@ export default function Konveksi() {
                     <h3 className="font-bold text-xl text-gray-800 group-hover:text-[#BA682A] transition-colors">
                       {konveksi.name}
                     </h3>
-                    {konveksi.isVerified && (
+                    {konveksi.is_verified && (
                       <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">
                         <CheckCircle className="w-3 h-3" />
-                        Terverifikasi
+                        Bermitra
                       </div>
                     )}
                   </div>
@@ -203,19 +205,15 @@ export default function Konveksi() {
                 </div>
               </div>
 
-              {/* Color Palette */}
-              <div className="flex gap-2 mb-4">
-                {konveksi.colors.map((color, idx) => (
-                  <div
-                    key={idx}
-                    className="w-12 h-8 rounded-lg shadow-sm"
-                    style={{ backgroundColor: color }}
-                  ></div>
-                ))}
+              {/* Contact Info */}
+              <div className="flex items-center gap-2 mb-4 text-sm text-gray-600">
+                <Phone className="w-4 h-4" style={{ color: '#BA682A' }} />
+                <span>{konveksi.no_telp}</span>
               </div>
 
               {/* Action Button */}
               <button
+                onClick={() => router.visit(`/konveksi/${konveksi.id}`)}
                 className="w-full py-3 px-4 rounded-xl font-medium text-white transition-all duration-300 hover:shadow-lg"
                 style={{ backgroundColor: '#BA682A' }}
                 onMouseEnter={(e) => {
@@ -232,21 +230,26 @@ export default function Konveksi() {
         ))}
       </div>
 
-      {/* Load More Button */}
-      <div className="text-center mt-12">
-        <button
-          className="inline-flex items-center gap-2 px-8 py-4 text-white font-medium rounded-xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-          style={{ backgroundColor: '#BA682A' }}
-          onMouseEnter={(e) => {
-            e.target.style.backgroundColor = '#9d5a24';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = '#BA682A';
-          }}
-        >
-          Muat Lebih Banyak Konveksi
-        </button>
-      </div>
+      {/* Pagination */}
+      {konveksis.links && (
+        <div className="flex justify-center mt-8">
+          <div className="flex space-x-2">
+            {konveksis.links.map((link, index) => (
+              <button
+                key={index}
+                onClick={() => link.url && router.visit(link.url)}
+                disabled={!link.url}
+                className={`px-4 py-2 rounded-lg ${
+                  link.active 
+                    ? 'bg-[#BA682A] text-white' 
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                dangerouslySetInnerHTML={{ __html: link.label }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </UserLayout>
   );
 }
