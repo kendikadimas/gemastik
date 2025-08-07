@@ -1,63 +1,118 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import MockupViewer3D from '@/Components/Editor/MockupViewer3D';
-// Impor semua komponen yang dibutuhkan
 import MotifLibrary from '@/Components/Editor/MotifLibrary';
 import CanvasArea from '@/Components/Editor/CanvasArea';
 import PropertiesToolbar from '@/Components/Editor/PropertiesToolbar';
 import LayerPanel from '@/Components/Editor/LayerPanel';
 
-    function downloadURI(uri, name) {
-        const link = document.createElement('a');
-        link.download = name;
-        link.href = uri;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+function downloadURI(uri, name) {
+    const link = document.createElement('a');
+    link.download = name;
+    link.href = uri;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
-
-// Data motif statis sebagai pengganti database
-const staticMotifs = [
-    { id: 1, name: 'Mega Mendung', file_path: '/images/motifs/1.svg', preview_image_path: '/images/motifs/1.svg' },
-    { id: 2, name: 'Motif Geometris', file_path: '/images/motifs/2.svg', preview_image_path: '/images/motifs/2.svg' },
-    { id: 3, name: 'Gunungan', file_path: '/images/motifs/3.svg', preview_image_path: '/images/motifs/3.svg' },
-    { id: 4, name: 'Parang Oranye', file_path: '/images/motifs/4.svg', preview_image_path: '/images/motifs/4.svg' },
-    { id: 5, name: 'Bunga Simetris', file_path: '/images/motifs/5.svg', preview_image_path: '/images/motifs/5.svg' },
-    { id: 6, name: 'Daun Emas', file_path: '/images/motifs/6.svg', preview_image_path: '/images/motifs/6.svg' },
-    { id: 7, name: 'Garis Vertikal', file_path: '/images/motifs/7.svg', preview_image_path: '/images/motifs/7.svg' },
-    { id: 8, name: 'Parang Emas', file_path: '/images/motifs/8.svg', preview_image_path: '/images/motifs/8.svg' },
-];
 
 export default function DesignEditor({ initialDesign }) {
     // State utama aplikasi editor
     const [canvasObjects, setCanvasObjects] = useState(initialDesign?.canvas_data || []);
     const [selectedId, setSelectedId] = useState(null);
-    const [designName, setDesignName] = useState(initialDesign?.name || 'Desain Batik Baru');
+    const [designName, setDesignName] = useState(initialDesign?.title || 'Desain Batik Baru');
+    const [isSaving, setIsSaving] = useState(false);
+    const [motifs, setMotifs] = useState([]);
+    const [loadingMotifs, setLoadingMotifs] = useState(true);
 
     const stageRef = useRef();
     const [show3DModal, setShow3DModal] = useState(false);
     const [patternFor3D, setPatternFor3D] = useState('');
-    // Fungsi untuk menyimpan desain (saat ini hanya simulasi)
-    const handleSave = () => {
-        if (!stageRef.current) {
+
+    // Load motifs dari API saat komponen mount
+    useEffect(() => {
+        fetchMotifs();
+    }, []);
+
+    const fetchMotifs = async () => {
+        try {
+            setLoadingMotifs(true);
+            const response = await fetch('/api/motifs/editor');
+            const data = await response.json();
+            setMotifs(data.motifs);
+        } catch (error) {
+            console.error('Error fetching motifs:', error);
+            // Fallback ke data statis jika API gagal
+            setMotifs([
+                { id: 1, name: 'Mega Mendung', file_path: '/images/motifs/1.svg', preview_image_path: '/images/motifs/1.svg' },
+                { id: 2, name: 'Motif Geometris', file_path: '/images/motifs/2.svg', preview_image_path: '/images/motifs/2.svg' },
+                { id: 3, name: 'Gunungan', file_path: '/images/motifs/3.svg', preview_image_path: '/images/motifs/3.svg' },
+                { id: 4, name: 'Parang Oranye', file_path: '/images/motifs/4.svg', preview_image_path: '/images/motifs/4.svg' },
+                { id: 5, name: 'Bunga Simetris', file_path: '/images/motifs/5.svg', preview_image_path: '/images/motifs/5.svg' },
+                { id: 6, name: 'Daun Emas', file_path: '/images/motifs/6.svg', preview_image_path: '/images/motifs/6.svg' },
+                { id: 7, name: 'Garis Vertikal', file_path: '/images/motifs/7.svg', preview_image_path: '/images/motifs/7.svg' },
+                { id: 8, name: 'Parang Emas', file_path: '/images/motifs/8.svg', preview_image_path: '/images/motifs/8.svg' },
+            ]);
+        } finally {
+            setLoadingMotifs(false);
+        }
+    };
+
+    // Fungsi untuk menyimpan desain ke database
+    const handleSave = async () => {
+        if (!stageRef.current || !designName.trim()) {
+            alert('Mohon masukkan nama desain');
             return;
         }
         
-        // ✨ 2. Ekspor canvas yang terlihat menjadi JPG
-        const dataURL = stageRef.current.toDataURL({
-            mimeType: 'image/jpeg',
-            quality: 0.9, // Kualitas JPG (0.0 - 1.0)
-            pixelRatio: 2, // Ekspor dengan resolusi 2x lebih tinggi agar tajam
-        });
-        downloadURI(dataURL, `${designName}.jpg`);
+        setIsSaving(true);
         
-        // Anda tetap bisa menyimpan data JSON ke database jika perlu
-        console.log("Menyimpan data JSON...");
-        console.log({
-            name: designName,
-            canvas_data: JSON.stringify(canvasObjects),
-        });
+        try {
+            // Generate thumbnail
+            const thumbnailDataURL = stageRef.current.toDataURL({
+                mimeType: 'image/jpeg',
+                quality: 0.8,
+                pixelRatio: 1,
+            });
+
+            const designData = {
+                title: designName,
+                canvas_data: canvasObjects,
+                thumbnail: thumbnailDataURL
+            };
+
+            if (initialDesign?.id) {
+                // Update existing design
+                router.put(`/designs/${initialDesign.id}`, designData, {
+                    onSuccess: () => {
+                        alert('Desain berhasil diperbarui!');
+                        router.visit('/dashboard');
+                    },
+                    onError: (errors) => {
+                        console.error('Error updating design:', errors);
+                        alert('Gagal memperbarui desain');
+                        setIsSaving(false);
+                    }
+                });
+            } else {
+                // Create new design
+                router.post('/designs', designData, {
+                    onSuccess: () => {
+                        alert('Desain berhasil disimpan!');
+                        router.visit('/dashboard');
+                    },
+                    onError: (errors) => {
+                        console.error('Error saving design:', errors);
+                        alert('Gagal menyimpan desain');
+                        setIsSaving(false);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error saving design:', error);
+            alert('Terjadi kesalahan saat menyimpan desain');
+            setIsSaving(false);
+        }
     };
 
     // Fungsi untuk membersihkan semua objek dari canvas
@@ -145,12 +200,10 @@ export default function DesignEditor({ initialDesign }) {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [canvasObjects, selectedId]); // Dependency agar state di dalam listener selalu terbaru
+    }, [canvasObjects, selectedId]);
 
     // Mendapatkan objek yang dipilih berdasarkan ID
     const selectedObject = canvasObjects.find(obj => obj.id === selectedId);
-
-
 
     return (
         <>
@@ -194,10 +247,15 @@ export default function DesignEditor({ initialDesign }) {
                                 Lihat 3D
                             </button>
                             <button 
-                                onClick={handleSave} 
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg transition-colors text-sm font-medium"
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className={`px-4 py-1.5 rounded-lg transition-colors text-sm font-medium ${
+                                    isSaving 
+                                        ? 'bg-gray-400 text-white cursor-not-allowed' 
+                                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                }`}
                             >
-                                Simpan
+                                {isSaving ? 'Menyimpan...' : 'Simpan'}
                             </button>
                         </div>
                     </div>
@@ -206,7 +264,11 @@ export default function DesignEditor({ initialDesign }) {
                 <div className="flex flex-grow overflow-hidden">
                     {/* Sidebar Kiri */}
                     <aside className="w-64 bg-white p-4 overflow-y-auto shadow-md flex flex-col">
-                        <MotifLibrary motifs={staticMotifs} />
+                        <MotifLibrary 
+                            motifs={motifs} 
+                            loading={loadingMotifs}
+                            onRefresh={fetchMotifs}
+                        />
                     </aside>
 
                     {/* Area Canvas Utama */}

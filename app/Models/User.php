@@ -48,8 +48,10 @@ class User extends Authenticatable
         ];
     }
 
-    // Pengguna bisa memiliki banyak desain
-    public function designs(): HasMany
+    /**
+     * Relasi ke Design
+     */
+    public function designs()
     {
         return $this->hasMany(Design::class);
     }

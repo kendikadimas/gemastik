@@ -1,22 +1,40 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Design;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use Inertia\Response;
 
 class DesignEditorController extends Controller
 {
-    public function show(Design $design = null): Response
+    /**
+     * Show the editor for creating new design
+     */
+    public function create()
     {
-        // Jika ada desain, pastikan hanya pemilik yang bisa membuka
-        if ($design && $design->user_id !== auth()->id()) {
-            abort(403);
+        return Inertia::render('Editor/DesignEditor', [
+            'initialDesign' => null
+        ]);
+    }
+
+    /**
+     * Show the editor for editing existing design
+     */
+    public function show(Design $design)
+    {
+        // Pastikan user hanya bisa membuka design miliknya sendiri
+        if ($design->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Decode canvas_data jika berupa string JSON
+        if (is_string($design->canvas_data)) {
+            $design->canvas_data = json_decode($design->canvas_data, true);
         }
 
         return Inertia::render('Editor/DesignEditor', [
-            'initialDesign' => $design, // Kirim data desain yang ada ke frontend
+            'initialDesign' => $design
         ]);
     }
 }

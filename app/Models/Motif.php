@@ -13,16 +13,42 @@ class Motif extends Model
     protected $fillable = [
         'name',
         'description',
+        'category',
+        'location',
         'image_url',
-        'is_ai',
+        'file_path',
+        'colors',
+        'is_active',
+        'is_featured',
         'user_id',
     ];
 
-    use HasFactory;
-    protected $guarded = ['id'];
+    protected $casts = [
+        'colors' => 'array',
+        'is_active' => 'boolean',
+        'is_featured' => 'boolean',
+    ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    // Scope untuk motif aktif
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    // Scope untuk motif featured
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
+    }
+
+    // Accessor untuk time ago
+    public function getTimeAgoAttribute()
+    {
+        return $this->created_at->diffForHumans();
     }
 }

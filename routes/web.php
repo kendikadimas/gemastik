@@ -2,44 +2,67 @@
 
 use App\Http\Controllers\BatikGeneratorController;
 use App\Http\Controllers\DesignEditorController;
+use App\Http\Controllers\DesignController;
+use App\Http\Controllers\MotifController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\DashboardController;
 
-
+// Route halaman utama (welcome) - hanya untuk guest
 Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect('/dashboard');
+    }
+    
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
         'auth' => [
-            'user' => Auth::user()
+            'user' => null
         ]
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('User/Dashboard'); 
-})->middleware(['auth', 'verified'])->name('dashboard');
-
 // Routes yang memerlukan autentikasi
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Halaman-halaman utama user
-    Route::get('/dashboard', fn () => Inertia::render('User/Dashboard'))->name('dashboard');
-    Route::get('/motif', fn () => Inertia::render('User/Motif'))->name('motif');
-    Route::get('/konveksi', fn () => Inertia::render('User/Konveksi'))->name('konveksi');
-    Route::get('/produksi', fn () => Inertia::render('User/Produksi'))->name('produksi');
-    Route::get('/bantuan', fn () => Inertia::render('User/Bantuan'))->name('bantuan');
+    
+    // Dashboard utama - menampilkan desain user
+    Route::get('/dashboard', [DesignController::class, 'index'])->name('dashboard');
 
-    // Editor routes - hanya bisa diakses dari dalam dashboard
-    Route::get('/editor/{design?}', [DesignEditorController::class, 'show'])->name('editor.show');
+    // Design routes - penting untuk menyimpan desain
+    Route::post('/designs', [DesignController::class, 'store'])->name('designs.store');
+    Route::get('/designs/{id}', [DesignController::class, 'show'])->name('designs.show');
+    Route::put('/designs/{id}', [DesignController::class, 'update'])->name('designs.update');
+    Route::delete('/designs/{id}', [DesignController::class, 'destroy'])->name('designs.destroy');
 
-    // Batik Generator - bisa diakses dari dashboard
+    // Motif routes
+    Route::get('/motif', [MotifController::class, 'index'])->name('motif');
+    
+    // API endpoint untuk mendapatkan motif untuk editor
+    Route::get('/api/motifs/editor', [MotifController::class, 'getForEditor'])->name('motifs.editor');
+
+    // Menu utama
+    Route::get('/konveksi', function () {
+        return Inertia::render('User/Konveksi');
+    })->name('konveksi');
+
+    Route::get('/produksi', function () {
+        return Inertia::render('User/Produksi');
+    })->name('produksi');
+    
+    Route::get('/bantuan', function () {
+        return Inertia::render('User/Bantuan');
+    })->name('bantuan');
+
+    // Editor routes - menggunakan controller
+    Route::get('/editor', [DesignEditorController::class, 'create'])->name('editor.create');
+    
+    // Batik Generator
     Route::get('/batik-generator', function () {
         return Inertia::render('BatikGeneratorPage');
     })->name('batik.generator');
@@ -49,7 +72,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
-
 
 // Admin routes
 Route::middleware(['auth', 'role:Admin'])->group(function () {

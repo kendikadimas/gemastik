@@ -1,104 +1,57 @@
 // Pages/User/Motif.jsx
 import UserLayout from '@/layouts/User/Layout';
 import { Search, Grid3X3, List, MapPin, Clock, Filter } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { router } from '@inertiajs/react';
 
-export default function Motif() {
-  const [selectedCategory, setSelectedCategory] = useState('Semua');
-  const [searchQuery, setSearchQuery] = useState('');
+export default function Motif({ motifs: initialMotifs = [], filters = {} }) {
+  const [selectedCategory, setSelectedCategory] = useState(filters.category || 'Semua');
+  const [searchQuery, setSearchQuery] = useState(filters.search || '');
   const [viewMode, setViewMode] = useState('grid');
+  const [motifs, setMotifs] = useState(initialMotifs);
 
   const filterCategories = ['Semua', 'Tradisional', 'Modern', 'Kontemporer', 'Nusantara'];
-  
-  const motifData = [
-    {
-      id: 1,
-      title: 'Batik Parang Barong',
-      description: 'Motif klasik dengan makna kekuatan dan keteguhan, biasa digunakan dalam upacara adat.',
-      category: 'Tradisional',
-      timeAgo: '3 bulan',
-      location: 'Yogyakarta',
-      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=600&fit=crop',
-      colors: ['#8B4513', '#D2691E', '#F4A460']
-    },
-    {
-      id: 2,
-      title: 'Batik Kawung Prabu',
-      description: 'Simbolisasi kesempurnaan hidup dengan pola geometris yang harmonis dan elegan.',
-      category: 'Tradisional',
-      timeAgo: '2 bulan',
-      location: 'Solo',
-      image: 'https://images.unsplash.com/photo-1594736797933-d0f59ba4e24d?w=600&h=600&fit=crop',
-      colors: ['#654321', '#A0522D', '#DEB887']
-    },
-    {
-      id: 3,
-      title: 'Batik Mega Mendung',
-      description: 'Motif awan yang melambangkan kesabaran dan ketenangan jiwa.',
-      category: 'Nusantara',
-      timeAgo: '1 bulan',
-      location: 'Cirebon',
-      image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=600&fit=crop',
-      colors: ['#1E40AF', '#3B82F6', '#DBEAFE']
-    },
-    {
-      id: 4,
-      title: 'Batik Truntum Garuda',
-      description: 'Motif yang melambangkan cinta kasih yang tumbuh kembali, cocok untuk acara sakral.',
-      category: 'Tradisional',
-      timeAgo: '2 minggu',
-      location: 'Yogyakarta',
-      image: 'https://images.unsplash.com/photo-1590736969955-71cc94901144?w=600&h=600&fit=crop',
-      colors: ['#DC2626', '#F59E0B', '#FEF3C7']
-    },
-    {
-      id: 5,
-      title: 'Batik Fractal Genesis',
-      description: 'Perpaduan motif tradisional dengan pola fractal modern yang memukau.',
-      category: 'Modern',
-      timeAgo: '1 bulan',
-      location: 'Jakarta',
-      image: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=600&h=600&fit=crop',
-      colors: ['#7C3AED', '#A855F7', '#E0E7FF']
-    },
-    {
-      id: 6,
-      title: 'Batik Sido Luhur',
-      description: 'Motif yang melambangkan kehormatan dan kemuliaan hidup.',
-      category: 'Tradisional',
-      timeAgo: '3 minggu',
-      location: 'Solo',
-      image: 'https://images.unsplash.com/photo-1590736969955-71cc94901144?w=600&h=600&fit=crop',
-      colors: ['#059669', '#10B981', '#D1FAE5']
-    },
-    {
-      id: 7,
-      title: 'Batik Urban Jungle',
-      description: 'Interpretasi modern dari motif flora dengan sentuhan kontemporer yang segar.',
-      category: 'Kontemporer',
-      timeAgo: '1 minggu',
-      location: 'Bandung',
-      image: 'https://images.unsplash.com/photo-1594736797933-d0f59ba4e24d?w=600&h=600&fit=crop',
-      colors: ['#16A34A', '#22C55E', '#BBFBCE']
-    },
-    {
-      id: 8,
-      title: 'Batik Pekalongan Coastal',
-      description: 'Motif khas pesisir dengan warna-warna cerah yang mencerminkan kehidupan laut.',
-      category: 'Nusantara',
-      timeAgo: '4 minggu',
-      location: 'Pekalongan',
-      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=600&fit=crop',
-      colors: ['#0EA5E9', '#38BDF8', '#E0F2FE']
-    }
-  ];
 
-  const filteredMotifs = motifData.filter(motif => {
-    const matchesCategory = selectedCategory === 'Semua' || motif.category === selectedCategory;
-    const matchesSearch = motif.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         motif.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  // Function to handle filter changes
+  const handleFilterChange = (category = selectedCategory, search = searchQuery) => {
+    const params = new URLSearchParams();
+    
+    if (category !== 'Semua') {
+      params.append('category', category);
+    }
+    
+    if (search.trim()) {
+      params.append('search', search.trim());
+    }
+
+    const queryString = params.toString();
+    const url = queryString ? `/motif?${queryString}` : '/motif';
+    
+    router.get(url, {}, {
+      preserveState: true,
+      preserveScroll: true,
+      onSuccess: (page) => {
+        setMotifs(page.props.motifs);
+      }
+    });
+  };
+
+  // Handle category change
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
+    handleFilterChange(category, searchQuery);
+  };
+
+  // Handle search with debounce
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery !== filters.search) {
+        handleFilterChange(selectedCategory, searchQuery);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
 
   return (
     <UserLayout title="Motif Batik">
@@ -108,7 +61,7 @@ export default function Motif() {
             Galeri Motif Batik
           </h1>
           <div className="text-sm text-gray-500">
-            {filteredMotifs.length} motif tersedia
+            {motifs.length} motif tersedia
           </div>
         </div>
         <p className="text-gray-600 text-lg">
@@ -124,7 +77,7 @@ export default function Motif() {
             {filterCategories.map((category) => (
               <button
                 key={category}
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => handleCategoryChange(category)}
                 className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
                   selectedCategory === category
                     ? 'text-white shadow-lg scale-105'
@@ -180,7 +133,7 @@ export default function Motif() {
 
       {/* Professional Motif Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredMotifs.map((motif) => (
+        {motifs.map((motif) => (
           <div
             key={motif.id}
             className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden transform hover:-translate-y-2"
@@ -252,7 +205,7 @@ export default function Motif() {
       </div>
 
       {/* Enhanced Load More Section */}
-      {filteredMotifs.length > 0 && (
+      {motifs.length > 0 && (
         <div className="text-center mt-12">
           <button 
             className="inline-flex items-center gap-3 px-8 py-4 text-white font-semibold rounded-2xl hover:shadow-xl hover:-translate-y-1 transition-all duration-300 transform"
@@ -276,7 +229,7 @@ export default function Motif() {
       )}
 
       {/* Empty State */}
-      {filteredMotifs.length === 0 && (
+      {motifs.length === 0 && (
         <div className="text-center py-16">
           <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Search className="w-8 h-8 text-gray-400" />
