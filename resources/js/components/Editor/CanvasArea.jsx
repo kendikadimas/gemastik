@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Stage, Layer, Image as KonvaImage, Transformer } from 'react-konva';
+import { Stage, Layer, Image as KonvaImage, Transformer, Rect } from 'react-konva';
 import useImage from 'use-image';
 
 // Komponen kecil untuk merender satu gambar motif di dalam canvas
@@ -162,6 +162,14 @@ export default function CanvasArea({ objects, setObjects, selectedId, setSelecte
                 draggable 
             >
                 <Layer>
+                    <Rect
+                        x={-stagePos.x / stageScale}
+                        y={-stagePos.y / stageScale}
+                        width={800 / stageScale}
+                        height={600 / stageScale}
+                        fill="white"
+                        listening={false}
+                    />
                     {objects.map((obj) => (
                         <MotifImage
                             key={obj.id}

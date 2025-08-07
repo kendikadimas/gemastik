@@ -34,13 +34,8 @@ class DesignController extends Controller
 
         // Simpan thumbnail jika ada
         if ($request->thumbnail) {
-            $thumbnailData = $request->thumbnail;
-            
-            // Remove data:image/jpeg;base64, prefix
-            if (strpos($thumbnailData, 'data:image/') === 0) {
-                $thumbnailData = substr($thumbnailData, strpos($thumbnailData, ',') + 1);
-            }
-            
+            // Hapus prefix data:image/jpeg;base64,
+            $thumbnailData = substr($request->thumbnail, strpos($request->thumbnail, ',') + 1);
             $thumbnailData = base64_decode($thumbnailData);
             $filename = 'designs/thumbnails/' . Auth::id() . '_' . time() . '.jpg';
             
@@ -56,11 +51,7 @@ class DesignController extends Controller
             'user_id' => Auth::id()
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Desain berhasil disimpan',
-            'design' => $design
-        ]);
+        return redirect()->route('dashboard');
     }
 
     public function show($id)
@@ -88,18 +79,13 @@ class DesignController extends Controller
         $thumbnailPath = $design->image_url;
 
         // Update thumbnail jika ada
-        if ($request->thumbnail) {
+        if ($request->has('thumbnail') && $request->thumbnail) {
             // Hapus thumbnail lama jika ada
             if ($design->image_url) {
-                $oldPath = str_replace('/storage/', '', $design->image_url);
-                Storage::disk('public')->delete($oldPath);
+                Storage::disk('public')->delete(str_replace('/storage/', '', $design->image_url));
             }
 
-            $thumbnailData = $request->thumbnail;
-            if (strpos($thumbnailData, 'data:image/') === 0) {
-                $thumbnailData = substr($thumbnailData, strpos($thumbnailData, ',') + 1);
-            }
-            
+            $thumbnailData = substr($request->thumbnail, strpos($request->thumbnail, ',') + 1);
             $thumbnailData = base64_decode($thumbnailData);
             $filename = 'designs/thumbnails/' . Auth::id() . '_' . time() . '.jpg';
             
@@ -114,11 +100,7 @@ class DesignController extends Controller
             'image_url' => $thumbnailPath
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Desain berhasil diperbarui',
-            'design' => $design
-        ]);
+        return redirect()->route('dashboard');
     }
 
     public function destroy($id)
@@ -138,5 +120,43 @@ class DesignController extends Controller
             'success' => true,
             'message' => 'Desain berhasil dihapus'
         ]);
+    }
+
+    public function storeFromAi(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'image_data' => 'required|string', // Base64
+        ]);
+
+        // Simpan gambar AI sebagai file (bisa untuk thumbnail & sumber gambar di canvas)
+        $imageData = substr($request->image_data, strpos($request->image_data, ',') + 1);
+        $imageData = base64_decode($imageData);
+        $filename = 'designs/generated/' . Auth::id() . '_' . time() . '.jpg';
+        Storage::disk('public')->put($filename, $imageData);
+        $imageUrl = asset(Storage::url($filename));
+
+        // Buat struktur data canvas dengan gambar AI di tengah
+        $canvasData = [
+            [
+                'id' => 'obj' . time(),
+                'x' => 100, // Posisi default X
+                'y' => 100, // Posisi default Y
+                'width' => 600, // Ukuran default
+                'height' => 600,
+                'rotation' => 0,
+                'src' => $imageUrl,
+            ]
+        ];
+
+        $design = Design::create([
+            'title' => $request->title,
+            'canvas_data' => $canvasData,
+            'image_url' => $imageUrl, // Gunakan gambar AI juga sebagai thumbnail
+            'user_id' => Auth::id(),
+        ]);
+
+        // Lempar pengguna ke halaman editor dengan desain baru ini
+        return redirect()->route('dashboard', ['design' => $design->id]);
     }
 }

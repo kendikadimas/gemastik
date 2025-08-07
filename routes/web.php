@@ -45,7 +45,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // API endpoint untuk mendapatkan motif untuk editor
     Route::get('/api/motifs/editor', [MotifController::class, 'getForEditor'])->name('motifs.editor');
-
+    Route::post('/motifs/ai', [MotifController::class, 'storeFromAi'])->name('motifs.store.ai');
+    Route::post('/designs/ai', [DesignController::class, 'storeFromAi'])->name('designs.store.ai');
     // Menu utama
     Route::get('/konveksi', function () {
         return Inertia::render('User/Konveksi');

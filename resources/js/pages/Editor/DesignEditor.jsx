@@ -59,60 +59,40 @@ export default function DesignEditor({ initialDesign }) {
     };
 
     // Fungsi untuk menyimpan desain ke database
-    const handleSave = async () => {
-        if (!stageRef.current || !designName.trim()) {
-            alert('Mohon masukkan nama desain');
-            return;
-        }
-        
+    const handleSave = () => {
+        if (!stageRef.current) return;
         setIsSaving(true);
-        
-        try {
-            // Generate thumbnail
-            const thumbnailDataURL = stageRef.current.toDataURL({
-                mimeType: 'image/jpeg',
-                quality: 0.8,
-                pixelRatio: 1,
-            });
 
-            const designData = {
-                title: designName,
-                canvas_data: canvasObjects,
-                thumbnail: thumbnailDataURL
-            };
+        // 1. Generate thumbnail dari canvas
+        const thumbnail = stageRef.current.toDataURL({
+            mimeType: 'image/jpeg',
+            quality: 0.8,
+            pixelRatio: 1, // Resolusi 1x cukup untuk thumbnail
+        });
 
-            if (initialDesign?.id) {
-                // Update existing design
-                router.put(`/designs/${initialDesign.id}`, designData, {
-                    onSuccess: () => {
-                        alert('Desain berhasil diperbarui!');
-                        router.visit('/dashboard');
-                    },
-                    onError: (errors) => {
-                        console.error('Error updating design:', errors);
-                        alert('Gagal memperbarui desain');
-                        setIsSaving(false);
-                    }
-                });
-            } else {
-                // Create new design
-                router.post('/designs', designData, {
-                    onSuccess: () => {
-                        alert('Desain berhasil disimpan!');
-                        router.visit('/dashboard');
-                    },
-                    onError: (errors) => {
-                        console.error('Error saving design:', errors);
-                        alert('Gagal menyimpan desain');
-                        setIsSaving(false);
-                    }
-                });
-            }
-        } catch (error) {
-            console.error('Error saving design:', error);
-            alert('Terjadi kesalahan saat menyimpan desain');
-            setIsSaving(false);
-        }
+        const designData = {
+            title: designName,
+            canvas_data: canvasObjects,
+            thumbnail: thumbnail, // Kirim thumbnail sebagai data base64
+        };
+
+        // 2. Tentukan rute dan metode (buat baru atau update)
+        const url = initialDesign ? `/designs/${initialDesign.id}` : '/designs';
+        const method = initialDesign ? 'put' : 'post';
+
+        // 3. Kirim data ke backend dan arahkan ke dashboard setelah selesai
+        router[method](url, designData, {
+            onSuccess: () => {
+                alert('Desain berhasil disimpan!');
+            },
+            onError: (errors) => {
+                console.error('Gagal menyimpan:', errors);
+                alert('Gagal menyimpan desain.');
+            },
+            onFinish: () => {
+                setIsSaving(false);
+            },
+        });
     };
 
     // Fungsi untuk membersihkan semua objek dari canvas
