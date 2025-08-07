@@ -79,8 +79,10 @@ export default function Dashboard() {
         
         {/* Action Cards */}
         <div className="flex gap-4">
-          <div
-            className="relative overflow-hidden rounded-2xl p-4 text-white shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group h-16 w-48"
+          {/* Button Buat Batik - mengarah ke Canvas/Editor */}
+          <Link
+            href="/editor"
+            className="relative overflow-hidden rounded-2xl p-4 text-white shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group h-16 w-48 block"
             style={{
               background: 'linear-gradient(135deg, #D2691E 0%, #A0522D 100%)',
               boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
@@ -88,7 +90,7 @@ export default function Dashboard() {
           >
             <div className="relative z-10 h-full flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-sm">Tambah Mokup</h3>
+                <h3 className="font-semibold text-md">Buat Batik</h3>
                 {/* <span className="text-xs opacity-90">35 Mokup</span> */}
               </div>
               <div 
@@ -100,18 +102,20 @@ export default function Dashboard() {
                 <Plus className="w-4 h-4" />
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div
-            className="relative overflow-hidden rounded-2xl p-4 text-white shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group h-16 w-48"
+          {/* Button Generate AI - mengarah ke Batik Generator */}
+          <Link
+            href="/batik-generator"
+            className="relative overflow-hidden rounded-2xl p-4 text-white shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group h-16 w-48 block"
             style={{
-              background: 'linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)',
-              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
+              background: 'linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%)', // Biru modern
+              boxShadow: '0 4px 15px rgba(59, 130, 246, 0.25)' // Shadow biru
             }}
           >
             <div className="relative z-10 h-full flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-sm">Tambah 3D</h3>
+                <h3 className="font-semibold text-md">Generate AI</h3>
                 {/* <span className="text-xs opacity-90">7 File</span> */}
               </div>
               <div 
@@ -120,10 +124,22 @@ export default function Dashboard() {
                   background: 'rgba(255, 255, 255, 0.25)',
                 }}
               >
-                <Plus className="w-4 h-4" />
+                {/* Fallback jika gambar AI tidak ada */}
+                <img 
+                  src="/images/icons/ai.svg" 
+                  alt="AI Icon" 
+                  className="w-4 h-4"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'block';
+                  }}
+                />
+                <div className="w-4 h-4 bg-white rounded-sm text-blue-600 font-bold text-xs  items-center justify-center hidden">
+                  AI
+                </div>
               </div>
             </div>
-          </div>
+          </Link>
         </div>
       </div>
 
@@ -215,9 +231,13 @@ export default function Dashboard() {
                       fill={project.favorite ? 'currentColor' : 'none'}
                     />
                   </button>
-                  <button className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-700 hover:bg-blue-500 hover:text-white transition-colors">
+                  {/* Edit button - mengarah ke editor dengan ID project */}
+                  <Link
+                    href={`/editor/${project.id}`}
+                    className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-700 hover:bg-blue-500 hover:text-white transition-colors"
+                  >
                     <Edit3 className="w-4 h-4" />
-                  </button>
+                  </Link>
                   <button className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-700 hover:bg-[#D2691E] hover:text-white transition-colors">
                     <Download className="w-4 h-4" />
                   </button>

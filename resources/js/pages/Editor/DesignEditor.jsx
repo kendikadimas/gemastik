@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
 import MockupViewer3D from '@/Components/Editor/MockupViewer3D';
 // Impor semua komponen yang dibutuhkan
 import MotifLibrary from '@/Components/Editor/MotifLibrary';
@@ -155,19 +156,51 @@ export default function DesignEditor({ initialDesign }) {
         <>
             <Head title="Editor Desain Batik" />
             <div className="flex flex-col h-screen font-sans bg-gray-200">
-                <header className="flex items-center justify-between p-2 bg-white border-b shadow-sm z-10">
-                    <input 
-                        type="text" 
-                        value={designName} 
-                        onChange={(e) => setDesignName(e.target.value)}
-                        className="font-bold border rounded px-2 py-1 text-black"
-                    />
-                    <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded transition-colors">
-                        Simpan
-                    </button>
-                    <button onClick={handleShow3D} className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1 rounded">
-                        Lihat 3D
-                    </button>
+                <header className="flex items-center justify-between p-3 bg-white border-b shadow-sm z-10">
+                    {/* Button Kembali - Pojok Kiri */}
+                    <div className="flex items-center">
+                        <Link 
+                            href="/dashboard"
+                            className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                            <span className="text-sm font-medium">Kembali</span>
+                        </Link>
+                    </div>
+
+                    {/* Logo/Title - Center */}
+                    <div className="flex items-center">
+                        <h1 className="text-lg font-bold text-gray-800">Canvas Batik</h1>
+                    </div>
+
+                    {/* Penamaan File dan Actions - Pojok Kanan */}
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-gray-600">Nama File:</label>
+                            <input 
+                                type="text" 
+                                value={designName} 
+                                onChange={(e) => setDesignName(e.target.value)}
+                                className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-48"
+                                placeholder="Masukkan nama desain"
+                            />
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                            <button 
+                                onClick={handleShow3D} 
+                                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded-lg transition-colors text-sm font-medium"
+                            >
+                                Lihat 3D
+                            </button>
+                            <button 
+                                onClick={handleSave} 
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg transition-colors text-sm font-medium"
+                            >
+                                Simpan
+                            </button>
+                        </div>
+                    </div>
                 </header>
 
                 <div className="flex flex-grow overflow-hidden">
@@ -204,14 +237,16 @@ export default function DesignEditor({ initialDesign }) {
                     </aside>
                 </div>
             </div>
+            
+            {/* Modal 3D */}
             {show3DModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg shadow-2xl w-3/4 h-3/4 p-4 relative">
                         <button 
                             onClick={() => setShow3DModal(false)}
-                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 z-10"
+                            className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center z-10 transition-colors"
                         >
-                            X
+                            ×
                         </button>
                         <MockupViewer3D patternUrl={patternFor3D} />
                     </div>
