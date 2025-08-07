@@ -3,6 +3,7 @@
 use App\Http\Controllers\BatikGeneratorController;
 use App\Http\Controllers\DesignEditorController;
 use App\Http\Controllers\DesignController;
+use App\Http\Controllers\KonveksiController;
 use App\Http\Controllers\MotifController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
@@ -74,6 +75,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// Konveksi routes
+Route::get('/konveksi', [KonveksiController::class, 'index'])->name('konveksi.index');
+Route::get('/konveksi/{konveksi}', [KonveksiController::class, 'show'])->name('konveksi.show');
+
 // Admin routes
 Route::middleware(['auth', 'role:Admin'])->group(function () {
     Route::get('/motifs/create', [\App\Http\Controllers\Admin\MotifController::class, 'create'])->name('motifs.create');
@@ -86,5 +91,9 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 });
 
 Route::post('/api/batik-generator', [BatikGeneratorController::class, 'generate']);
+
+Route::prefix('api')->group(function () {
+    Route::get('/konveksi', [KonveksiController::class, 'apiIndex']);
+});
 
 require __DIR__.'/auth.php';
