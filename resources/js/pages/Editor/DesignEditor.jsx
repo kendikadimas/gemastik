@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import MockupViewer3D from '@/Components/Editor/MockupViewer3D';
 import MotifLibrary from '@/Components/Editor/MotifLibrary';
 import CanvasArea from '@/Components/Editor/CanvasArea';
@@ -242,9 +242,10 @@ export default function DesignEditor({ initialDesign }) {
                         <div className="flex items-center gap-2">
                             <button 
                                 onClick={handleShow3D} 
-                                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded-lg transition-colors text-sm font-medium"
+                                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded-lg transition-colors text-sm font-medium flex items-center gap-1"
                             >
-                                Lihat 3D
+                                Preview 3D
+                                <ArrowRight className="w-4 h-4" />
                             </button>
                             <button 
                                 onClick={handleSave}
@@ -262,8 +263,8 @@ export default function DesignEditor({ initialDesign }) {
                 </header>
 
                 <div className="flex flex-grow overflow-hidden">
-                    {/* Sidebar Kiri */}
-                    <aside className="w-64 bg-white p-4 overflow-y-auto shadow-md flex flex-col">
+                    {/* Sidebar Kiri - Fixed Width */}
+                    <aside className="w-64 bg-white p-4 overflow-y-auto shadow-md flex flex-col flex-shrink-0">
                         <MotifLibrary 
                             motifs={motifs} 
                             loading={loadingMotifs}
@@ -271,19 +272,21 @@ export default function DesignEditor({ initialDesign }) {
                         />
                     </aside>
 
-                    {/* Area Canvas Utama */}
-                    <main className="flex-grow flex items-center justify-center p-4">
-                        <CanvasArea 
-                            objects={canvasObjects} 
-                            setObjects={setCanvasObjects}
-                            selectedId={selectedId}
-                            setSelectedId={setSelectedId}
-                            stageRef={stageRef}
-                        />
+                    {/* Area Canvas Utama - Perfect Center */}
+                    <main className="flex-1 flex items-center justify-center p-4 bg-gray-100">
+                        <div className="w-full h-full flex items-center justify-center">
+                            <CanvasArea 
+                                objects={canvasObjects} 
+                                setObjects={setCanvasObjects}
+                                selectedId={selectedId}
+                                setSelectedId={setSelectedId}
+                                stageRef={stageRef}
+                            />
+                        </div>
                     </main>
 
-                    {/* Sidebar Kanan */}
-                    <aside className="w-72 bg-white p-4 shadow-md">
+                    {/* Sidebar Kanan - Fixed Width */}
+                    <aside className="w-72 bg-white p-4 shadow-md flex-shrink-0 overflow-y-auto">
                         <PropertiesToolbar 
                             selectedObject={selectedObject}
                             onUpdate={updateObjectProperties}
