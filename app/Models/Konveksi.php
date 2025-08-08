@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Konveksi extends Model
 {
@@ -74,5 +75,11 @@ class Konveksi extends Model
     public function getVerificationStatusAttribute()
     {
         return $this->is_verified ? 'Terverifikasi' : 'Belum Terverifikasi';
+    }
+
+    public function user(): BelongsTo
+    {
+        // 'user_id' adalah nama foreign key di tabel 'konveksis'
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

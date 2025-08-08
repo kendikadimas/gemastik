@@ -15,6 +15,8 @@ class Preview3dModel extends Model
      *
      * @var array<int, string>
      */
+
+    protected $table = 'preview_3d_models';
     protected $fillable = [
         'model_type',
         'model_url',

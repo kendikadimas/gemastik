@@ -5,6 +5,7 @@ use App\Http\Controllers\DesignEditorController;
 use App\Http\Controllers\DesignController;
 use App\Http\Controllers\KonveksiController;
 use App\Http\Controllers\MotifController;
+use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
@@ -17,7 +18,6 @@ Route::get('/', function () {
     if (Auth::check()) {
         return redirect('/dashboard');
     }
-    
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
@@ -31,11 +31,10 @@ Route::get('/', function () {
 
 // Routes yang memerlukan autentikasi
 Route::middleware(['auth', 'verified'])->group(function () {
-    
     // Dashboard utama - menampilkan desain user
     Route::get('/dashboard', [DesignController::class, 'index'])->name('dashboard');
 
-    // Design routes - penting untuk menyimpan desain
+    // Design routes
     Route::post('/designs', [DesignController::class, 'store'])->name('designs.store');
     Route::get('/designs/{id}', [DesignController::class, 'show'])->name('designs.show');
     Route::put('/designs/{id}', [DesignController::class, 'update'])->name('designs.update');
@@ -43,31 +42,30 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Motif routes
     Route::get('/motif', [MotifController::class, 'index'])->name('motif');
-    
-    // API endpoint untuk mendapatkan motif untuk editor
     Route::get('/api/motifs/editor', [MotifController::class, 'getForEditor'])->name('motifs.editor');
     Route::post('/motifs/ai', [MotifController::class, 'storeFromAi'])->name('motifs.store.ai');
     Route::post('/designs/ai', [DesignController::class, 'storeFromAi'])->name('designs.store.ai');
+
     // Menu utama
     Route::get('/konveksi', function () {
         return Inertia::render('User/Konveksi');
     })->name('konveksi');
-
-    Route::get('/produksi', function () {
-        return Inertia::render('User/Produksi');
-    })->name('produksi');
-    
     Route::get('/bantuan', function () {
         return Inertia::render('User/Bantuan');
     })->name('bantuan');
 
-    // Editor routes - menggunakan controller
+    // Editor routes
     Route::get('/editor', [DesignEditorController::class, 'create'])->name('editor.create');
-    
+
     // Batik Generator
     Route::get('/batik-generator', function () {
         return Inertia::render('BatikGeneratorPage');
     })->name('batik.generator');
+
+    // Production routes
+    Route::get('/produksi', [ProductionController::class, 'index'])->name('production.index');
+    Route::get('/produksi/pesan', [ProductionController::class, 'create'])->name('production.create');
+    Route::post('/produksi/pesan', [ProductionController::class, 'store'])->name('production.store');
 
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -75,9 +73,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Konveksi routes
+// Konveksi routes (untuk detail dan show)
 Route::get('/konveksi', [KonveksiController::class, 'index'])->name('konveksi.index');
 Route::get('/konveksi/{konveksi}', [KonveksiController::class, 'show'])->name('konveksi.show');
+
+// Konveksi dashboard khusus (role:Convection,Admin)
+Route::middleware(['auth', 'role:Convection,Admin'])->prefix('konveksi')->name('konveksi.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\Konveksi\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/pesanan', [App\Http\Controllers\Konveksi\DashboardController::class, 'orders'])->name('orders');
+    Route::get('/pelanggan', [App\Http\Controllers\Konveksi\DashboardController::class, 'customers'])->name('customers');
+    Route::get('/penghasilan', [App\Http\Controllers\Konveksi\DashboardController::class, 'income'])->name('income');
+});
 
 // Admin routes
 Route::middleware(['auth', 'role:Admin'])->group(function () {
@@ -89,11 +95,10 @@ Route::middleware(['auth', 'role:Admin'])->group(function () {
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
-
 Route::post('/api/batik-generator', [BatikGeneratorController::class, 'generate']);
-
 Route::prefix('api')->group(function () {
     Route::get('/konveksi', [KonveksiController::class, 'apiIndex']);
 });
 
+// Memuat semua rute autentikasi (login, register, logout, dll.)
 require __DIR__.'/auth.php';

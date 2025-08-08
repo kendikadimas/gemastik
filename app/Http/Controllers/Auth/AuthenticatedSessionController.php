@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Log;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -33,6 +34,13 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = Auth::user();
+        \Log::info('Role user setelah login: ' . $user->role); // Debug log
+
+        if ($user->role === 'Convection' ) {
+            return redirect()->intended(route('konveksi.dashboard'));
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
@@ -47,6 +55,10 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        if (!Auth::user()) {
+            return redirect('/login');
+        }
+
+        return redirect('/login')->with('error', 'Gagal logout, silakan coba lagi');
     }
 }

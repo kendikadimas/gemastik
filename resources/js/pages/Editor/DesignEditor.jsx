@@ -188,85 +188,65 @@ export default function DesignEditor({ initialDesign }) {
     return (
         <>
             <Head title="Editor Desain Batik" />
-            <div className="flex flex-col h-screen font-sans bg-gray-200">
-                <header className="flex items-center justify-between p-3 bg-white border-b shadow-sm z-10">
-                    {/* Button Kembali - Pojok Kiri */}
-                    <div className="flex items-center">
-                        <Link 
-                            href="/dashboard"
-                            className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg transition-colors"
-                        >
-                            <ArrowLeft className="w-4 h-4" />
-                            <span className="text-sm font-medium">Kembali</span>
-                        </Link>
-                    </div>
-
-                    {/* Logo/Title - Center */}
-                    <div className="flex items-center">
-                        <h1 className="text-lg font-bold text-gray-800">Canvas Batik</h1>
-                    </div>
-
-                    {/* Penamaan File dan Actions - Pojok Kanan */}
+            <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 font-sans">
+                <header className="flex items-center justify-between px-6 py-4 bg-white shadow sticky top-0 z-20 border-b">
+                    <Link 
+                        href="/dashboard"
+                        className="flex items-center gap-2 bg-[#F8F5F2] hover:bg-[#F3EDE7] text-[#BA682A] px-3 py-2 rounded-lg transition"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span className="text-sm font-semibold">Kembali</span>
+                    </Link>
+                    <h1 className="text-xl font-bold text-[#BA682A] tracking-tight">Canvas Batik</h1>
                     <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium text-gray-600">Nama File:</label>
-                            <input 
-                                type="text" 
-                                value={designName} 
-                                onChange={(e) => setDesignName(e.target.value)}
-                                className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-48"
-                                placeholder="Masukkan nama desain"
-                            />
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                            <button 
-                                onClick={handleShow3D} 
-                                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded-lg transition-colors text-sm font-medium flex items-center gap-1"
-                            >
-                                Preview 3D
-                                <ArrowRight className="w-4 h-4" />
-                            </button>
-                            <button 
-                                onClick={handleSave}
-                                disabled={isSaving}
-                                className={`px-4 py-1.5 rounded-lg transition-colors text-sm font-medium ${
-                                    isSaving 
-                                        ? 'bg-gray-400 text-white cursor-not-allowed' 
-                                        : 'bg-blue-600 hover:bg-blue-700 text-white'
-                                }`}
-                            >
-                                {isSaving ? 'Menyimpan...' : 'Simpan'}
-                            </button>
-                        </div>
+                        <input 
+                            type="text" 
+                            value={designName} 
+                            onChange={(e) => setDesignName(e.target.value)}
+                            className="border border-[#D2691E] rounded-lg px-3 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#D2691E] w-48"
+                            placeholder="Nama desain"
+                        />
+                        <button 
+                            onClick={handleShow3D} 
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg transition flex items-center gap-1 shadow"
+                        >
+                            Preview 3D
+                            <ArrowRight className="w-4 h-4" />
+                        </button>
+                        <button 
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            className={`px-4 py-1.5 rounded-lg transition text-sm font-semibold shadow ${
+                                isSaving 
+                                    ? 'bg-gray-400 text-white cursor-not-allowed' 
+                                    : 'bg-[#D2691E] hover:bg-[#A0522D] text-white'
+                            }`}
+                        >
+                            {isSaving ? 'Menyimpan...' : 'Simpan'}
+                        </button>
                     </div>
-                </header>
-
-                <div className="flex flex-grow overflow-hidden">
-                    {/* Sidebar Kiri - Fixed Width */}
-                    <aside className="w-64 bg-white p-4 overflow-y-auto shadow-md flex flex-col flex-shrink-0">
+                </header>   
+                <div className="flex flex-1 gap-4 px-6 py-4">
+                    {/* Sidebar Kiri */}
+                    <aside className="w-64 bg-white rounded-xl shadow-lg p-4 flex flex-col border border-[#F3EDE7]">
                         <MotifLibrary 
                             motifs={motifs} 
                             loading={loadingMotifs}
                             onRefresh={fetchMotifs}
                         />
                     </aside>
-
-                    {/* Area Canvas Utama - Perfect Center */}
-                    <main className="flex-1 flex items-center justify-center p-4 bg-gray-100">
-                        <div className="w-full h-full flex items-center justify-center">
-                            <CanvasArea 
-                                objects={canvasObjects} 
-                                setObjects={setCanvasObjects}
-                                selectedId={selectedId}
-                                setSelectedId={setSelectedId}
-                                stageRef={stageRef}
-                            />
-                        </div>
+                    {/* Area Canvas */}
+                    <main className="flex-1 flex items-center justify-center bg-white rounded-xl shadow-lg p-4 border border-[#F3EDE7]">
+                        <CanvasArea 
+                            objects={canvasObjects} 
+                            setObjects={setCanvasObjects}
+                            selectedId={selectedId}
+                            setSelectedId={setSelectedId}
+                            stageRef={stageRef}
+                        />
                     </main>
-
-                    {/* Sidebar Kanan - Fixed Width */}
-                    <aside className="w-72 bg-white p-4 shadow-md flex-shrink-0 overflow-y-auto">
+                    {/* Sidebar Kanan */}
+                    <aside className="w-72 bg-white rounded-xl shadow-lg p-4 flex flex-col border border-[#F3EDE7]">
                         <PropertiesToolbar 
                             selectedObject={selectedObject}
                             onUpdate={updateObjectProperties}
@@ -281,22 +261,22 @@ export default function DesignEditor({ initialDesign }) {
                         </div>
                     </aside>
                 </div>
-            </div>
-            
-            {/* Modal 3D */}
-            {show3DModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg shadow-2xl w-3/4 h-3/4 p-4 relative">
-                        <button 
-                            onClick={() => setShow3DModal(false)}
-                            className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center z-10 transition-colors"
-                        >
-                            ×
-                        </button>
-                        <MockupViewer3D patternUrl={patternFor3D} />
+
+                {/* Modal 3D */}
+                {show3DModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-xl shadow-2xl w-3/4 h-3/4 p-6 relative flex flex-col z-50">
+                            <button 
+                                onClick={() => setShow3DModal(false)}
+                                className="z-100 absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow transition"
+                            >
+                                ×
+                            </button>
+                            <MockupViewer3D patternUrl={patternFor3D} />
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </>
     );
 }

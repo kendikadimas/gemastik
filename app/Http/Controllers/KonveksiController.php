@@ -37,9 +37,9 @@ class KonveksiController extends Controller
 
         // Order by rating desc and verification status
         $konveksis = $query->orderBy('is_verified', 'desc')
-                          ->orderBy('rating', 'desc')
-                          ->paginate(12)
-                          ->withQueryString();
+                            ->orderBy('rating', 'desc')
+                            ->paginate(12)
+                            ->withQueryString();
 
         // Get statistics
         $stats = $this->getStatistics();
