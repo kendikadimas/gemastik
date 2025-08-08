@@ -62,7 +62,8 @@ const MotifImage = ({ shapeProps, isSelected, onSelect, onChange }) => {
 // Komponen utama untuk seluruh area canvas
 export default function CanvasArea({ objects, setObjects, selectedId, setSelectedId, stageRef }) {
     const trRef = useRef();
-    
+    const containerRef = useRef(null);
+    const [size, setSize] = useState({ width: 0, height: 0 });
     // State lokal untuk posisi dan skala panggung (canvas)
     const [stagePos, setStagePos] = useState({ x: 0, y: 0 });
     const [stageScale, setStageScale] = useState(1);
@@ -79,6 +80,23 @@ export default function CanvasArea({ objects, setObjects, selectedId, setSelecte
             trRef.current.getLayer()?.batchDraw();
         }
     }, [selectedId, objects, stageRef]);
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        const checkSize = () => {
+            setSize({
+                width: containerRef.current.offsetWidth,
+                height: containerRef.current.offsetHeight,
+            });
+        };
+
+        // Cek ukuran saat pertama kali mount dan saat window di-resize
+        checkSize();
+        window.addEventListener('resize', checkSize);
+
+        return () => window.removeEventListener('resize', checkSize);
+    }, []);
 
     // Fungsi untuk membatalkan pilihan jika klik di area kosong
     const checkDeselect = (e) => {
@@ -143,13 +161,14 @@ export default function CanvasArea({ objects, setObjects, selectedId, setSelecte
 
     return (
         <div 
-            className="bg-white shadow-lg cursor-grab active:cursor-grabbing"
+            ref={containerRef}
+            className="bg-white cursor-grab active:cursor-grabbing w-full h-full"
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
         >
             <Stage
-                width={800}
-                height={600}
+                width={size.width}
+                height={size.height}
                 onMouseDown={checkDeselect}
                 onTouchStart={checkDeselect}
                 ref={stageRef}

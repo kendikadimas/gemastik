@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             MotifSeeder::class,
             KonveksiSeeder::class,
-            KonveksiDataSeeder::class,
+            // KonveksiDataSeeder::class,
         ]);
     }
 }

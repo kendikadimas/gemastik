@@ -236,13 +236,14 @@ export default function DesignEditor({ initialDesign }) {
                         />
                     </aside>
                     {/* Area Canvas */}
-                    <main className="flex-1 flex items-center justify-center bg-white rounded-xl shadow-lg p-4 border border-[#F3EDE7]">
+                    <main className="flex-1 flex bg-white rounded-xl shadow-lg p-4 border border-[#F3EDE7]">
                         <CanvasArea 
                             objects={canvasObjects} 
                             setObjects={setCanvasObjects}
                             selectedId={selectedId}
                             setSelectedId={setSelectedId}
                             stageRef={stageRef}
+                            style={{ width: '100%'}}
                         />
                     </main>
                     {/* Sidebar Kanan */}

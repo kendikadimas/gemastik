@@ -79,55 +79,62 @@ class ProductionController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'design_id' => 'required|exists:designs,id',
-            'product_id' => 'required|exists:product,id',
-            'convection_id' => 'required|exists:konveksis,id',
-            'quantity' => 'required|integer|min:12',
-            'customer_name' => 'required|string|max:255',
-            'customer_company' => 'nullable|string|max:255',
-            'customer_email' => 'required|email',
-            'customer_phone' => 'required|string|max:20',
-            'customer_address' => 'required|string',
-            'batik_type' => 'required|string',
-            'fabric_size' => 'required|string',
-            'deadline' => 'required|date|after:today',
-            'special_notes' => 'nullable|string',
-        ]);
 
-        $design = Design::find($validated['design_id']);
-        $product = Product::find($validated['product_id']);
-        $konveksi = Konveksi::find($validated['convection_id']);
 
-        // Hitung harga berdasarkan product dan quantity
-        $pricePerUnit = $this->calculatePrice($product, $validated['batik_type'], $validated['quantity']);
-        $totalPrice = $pricePerUnit * $validated['quantity'];
+        $validatedData = $request->validate([
+        'design_id' => 'required|exists:designs,id',
+        'product_id' => 'required|exists:product,id',
+        'convection_id' => 'required|exists:konveksis,id',
+        'quantity' => 'required|integer|min:1',
+        'customer_name' => 'required|string',
+        'customer_email' => 'required|email',
+        'customer_phone' => 'required|string',
+        'customer_address' => 'required|string',
+        'batik_type' => 'required|string',
+        'fabric_size' => 'required|string',
+        'deadline' => 'required|date',
+        'special_notes' => 'nullable|string'
+    ]);
 
-        $production = Production::create([
-            'user_id' => Auth::id(),
-            'convection_user_id' => $konveksi->user_id ?? 1, // Default jika belum ada relasi user
-            'design_id' => $validated['design_id'],
-            'product_id' => $validated['product_id'],
-            'quantity' => $validated['quantity'],
-            'price_per_unit' => $pricePerUnit,
-            'total_price' => $totalPrice,
-            'production_status' => 'diterima',
-            'payment_status' => 'unpaid',
-            // Data customer disimpan sebagai JSON atau buat table terpisah
-            'customer_data' => json_encode([
-                'name' => $validated['customer_name'],
-                'company' => $validated['customer_company'],
-                'email' => $validated['customer_email'],
-                'phone' => $validated['customer_phone'],
-                'address' => $validated['customer_address'],
-                'batik_type' => $validated['batik_type'],
-                'fabric_size' => $validated['fabric_size'],
-                'deadline' => $validated['deadline'],
-                'special_notes' => $validated['special_notes'],
-            ])
-        ]);
+    // 2. Pastikan relasi valid
+    $design = Design::where('id', $validatedData['design_id'])->where('user_id', Auth::id())->firstOrFail();
+    $product = Product::findOrFail($validatedData['product_id']);
+    $konveksi = Konveksi::findOrFail($validatedData['convection_id']);
+    $convectionUser = $konveksi->user;
 
-        return redirect()->route('production.index')->with('success', 'Pesanan produksi berhasil dibuat!');
+    if (!$convectionUser || $convectionUser->role !== 'Convection') {
+        return back()->withErrors(['convection_id' => 'Mitra konveksi tidak valid.']);
+    }
+    
+    // 3. Kumpulkan sisa data dari request untuk disimpan ke kolom JSON
+    $customerData = [
+        'name' => $request->input('customer_name'),
+            'company' => $request->input('customer_company'), // Opsional
+            'email' => $request->input('customer_email'),
+            'phone' => $request->input('customer_phone'),
+            'address' => $request->input('customer_address'),
+            'batik_type' => $request->input('batik_type'),
+            'fabric_size' => $request->input('fabric_size'),
+            'deadline' => $request->input('deadline'),
+            'special_notes' => $request->input('special_notes'),
+    ];
+
+    // 4. Buat record baru
+    Production::create([
+        'user_id' => Auth::id(),
+        'convection_user_id' => $convectionUser->id,
+        'design_id' => $design->id,
+        'product_id' => $product->id,
+        'quantity' => $validatedData['quantity'],
+        'price_per_unit' => $product->base_price,
+        'total_price' => $validatedData['quantity'] * $product->base_price,
+        'production_status' => 'diterima',
+        'payment_status' => 'unpaid',
+        'customer_data' => $customerData, // Simpan data JSON
+    ]);
+
+    // 5. Arahkan kembali ke halaman riwayat produksi
+    return redirect()->route('produksi.index')->with('success', 'Pesanan berhasil dibuat!');
     }
 
     private function calculatePrice($product, $batikType, $quantity)
