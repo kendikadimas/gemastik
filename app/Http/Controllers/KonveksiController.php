@@ -39,7 +39,22 @@ class KonveksiController extends Controller
         $konveksis = $query->orderBy('is_verified', 'desc')
                             ->orderBy('rating', 'desc')
                             ->paginate(12)
-                            ->withQueryString();
+                            ->withQueryString()
+                            ->through(function ($konveksi) {
+                                return [
+                                    'id' => $konveksi->id,
+                                    'name' => $konveksi->name,
+                                    'location' => $konveksi->location,
+                                    'is_verified' => $konveksi->is_verified,
+                                    'rating' => $konveksi->rating,
+                                    'no_telp' => $konveksi->no_telp,
+                                    'description' => $konveksi->description,
+                                    'documentation' => $konveksi->documentation,
+                                    'documentation_url' => $konveksi->documentation_url,
+                                    'icon' => $konveksi->icon,
+                                    'icon_url' => $konveksi->icon_url,
+                                ];
+                            });
 
         // Get statistics
         $stats = $this->getStatistics();

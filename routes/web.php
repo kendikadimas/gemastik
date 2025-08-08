@@ -63,9 +63,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('batik.generator');
 
     // Production routes
-    Route::get('/produksi', [ProductionController::class, 'index'])->name('production.index');
-    Route::get('/produksi/pesan', [ProductionController::class, 'create'])->name('production.create');
-    Route::post('/produksi/pesan', [ProductionController::class, 'store'])->name('production.store');
+    Route::get('/production', [ProductionController::class, 'index'])->name('production.index');
+    Route::get('/production/create', [ProductionController::class, 'create'])->name('production.create');
+    Route::post('/production', [ProductionController::class, 'store'])->name('production.store');
+    Route::get('/production/{production}', [ProductionController::class, 'show'])->name('production.show');
+
+    // Alias untuk backward compatibility
+    Route::get('/produksi', [ProductionController::class, 'index'])->name('produksi.index');
 
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

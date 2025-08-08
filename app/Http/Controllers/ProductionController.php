@@ -2,101 +2,164 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Production;
 use App\Models\Design;
 use App\Models\Konveksi;
 use App\Models\Product;
-use App\Models\Production;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Auth;
 
 class ProductionController extends Controller
 {
-
-
     public function index()
     {
-        $productions = Auth::user()->productionOrders()
-            ->with(['design', 'product', 'convection'])
+        $productions = Production::with(['design', 'konveksi', 'product'])
+            ->where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
-            ->paginate(10); // Gunakan paginasi
+            ->get()
+            ->map(function ($production) {
+                return [
+                    'id' => $production->id,
+                    'design' => $production->design,
+                    'konveksi' => $production->konveksi,
+                    'product' => $production->product,
+                    'quantity' => $production->quantity,
+                    'total_price' => $production->total_price,
+                    'production_status' => $production->production_status,
+                    'payment_status' => $production->payment_status,
+                    'customer_data' => $production->customer_data,
+                    'created_at' => $production->created_at,
+                    'status_color' => $production->status_color,
+                    'status_label' => $production->status_label,
+                    'progress_percentage' => $production->progress_percentage,
+                ];
+            });
 
-        return Inertia::render('User/Produksi', [
-            'productions' => $productions
-        ]);
-    }
-    /**
-     * Menampilkan form untuk membuat pesanan produksi baru.
-     * Pengguna akan memilih salah satu desain miliknya.
-     */
-    public function create(Request $request)
-    {
-        $designs = Auth::user()->designs()->orderBy('updated_at', 'desc')->get();
-        
+        $stats = [
+            'total_orders' => Production::where('user_id', Auth::id())->count(),
+            'in_progress' => Production::where('user_id', Auth::id())->where('production_status', 'diproses')->count(),
+            'completed' => Production::where('user_id', Auth::id())->where('production_status', 'diterima_selesai')->count(),
+            'total_value' => Production::where('user_id', Auth::id())->sum('total_price'),
+        ];
+
+        $designs = Design::where('user_id', Auth::id())->get();
+        $konveksis = Konveksi::where('is_verified', true)->get();
         $products = Product::all();
 
-        $selectedConvection = null;
-        $convections = [];
-
-        // Jika ada ID konveksi dari URL, cari data konveksi tersebut
-        if ($request->has('konveksi_id')) {
-            $selectedConvection = Konveksi::findOrFail($request->query('konveksi_id'));
-        } else {
-            // Jika tidak, ambil semua data konveksi untuk dropdown
-            $convections = Konveksi::all();
-        }
-        
-        return Inertia::render('User/CreateProduction', [
+        return Inertia::render('User/Produksi', [
+            'productions' => $productions,
+            'stats' => $stats,
             'designs' => $designs,
-            'products' => $products,
-            'convections' => $convections,
-            'selectedConvection' => $selectedConvection,
+            'konveksis' => $konveksis,
+            'products' => $products
         ]);
     }
 
-    /**
-     * Menyimpan pesanan produksi baru ke database.
-     */
+    public function create(Request $request)
+    {
+        $designs = Design::where('user_id', Auth::id())->get();
+        $konveksis = Konveksi::where('is_verified', true)->get();
+        $products = Product::all();
+
+        // Jika ada convection_id dari parameter
+        $selectedConvection = null;
+        if ($request->convection_id) {
+            $selectedConvection = Konveksi::find($request->convection_id);
+        }
+
+        return Inertia::render('User/CreateProduction', [
+            'designs' => $designs,
+            'konveksis' => $konveksis,
+            'products' => $products,
+            'selectedConvection' => $selectedConvection,
+            'initialConvectionId' => $request->convection_id
+        ]);
+    }
+
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'design_id' => 'required|exists:designs,id',
             'product_id' => 'required|exists:product,id',
             'convection_id' => 'required|exists:konveksis,id',
-            'quantity' => 'required|integer|min:1',
+            'quantity' => 'required|integer|min:12',
+            'customer_name' => 'required|string|max:255',
+            'customer_company' => 'nullable|string|max:255',
+            'customer_email' => 'required|email',
+            'customer_phone' => 'required|string|max:20',
+            'customer_address' => 'required|string',
+            'batik_type' => 'required|string',
+            'fabric_size' => 'required|string',
+            'deadline' => 'required|date|after:today',
+            'special_notes' => 'nullable|string',
         ]);
 
-        // Pastikan desain yang dipilih adalah milik pengguna yang login
-        $design = Design::where('id', $request->design_id)->where('user_id', Auth::id())->firstOrFail();
-        $product = Product::findOrFail($request->product_id);
+        $design = Design::find($validated['design_id']);
+        $product = Product::find($validated['product_id']);
+        $konveksi = Konveksi::find($validated['convection_id']);
 
-        // Cari data user dari konveksi yang dipilih
-        $konveksi = Konveksi::findOrFail($request->convection_id);
-        
-        // Ambil user yang terhubung dari data konveksi
-        $convectionUser = $konveksi->user; 
-        
-        if(!$convectionUser || $convectionUser->role !== 'Convection') {
-            return back()->withErrors(['convection_id' => 'Mitra konveksi tidak valid atau tidak memiliki peran yang benar.']);
+        // Hitung harga berdasarkan product dan quantity
+        $pricePerUnit = $this->calculatePrice($product, $validated['batik_type'], $validated['quantity']);
+        $totalPrice = $pricePerUnit * $validated['quantity'];
+
+        $production = Production::create([
+            'user_id' => Auth::id(),
+            'convection_user_id' => $konveksi->user_id ?? 1, // Default jika belum ada relasi user
+            'design_id' => $validated['design_id'],
+            'product_id' => $validated['product_id'],
+            'quantity' => $validated['quantity'],
+            'price_per_unit' => $pricePerUnit,
+            'total_price' => $totalPrice,
+            'production_status' => 'diterima',
+            'payment_status' => 'unpaid',
+            // Data customer disimpan sebagai JSON atau buat table terpisah
+            'customer_data' => json_encode([
+                'name' => $validated['customer_name'],
+                'company' => $validated['customer_company'],
+                'email' => $validated['customer_email'],
+                'phone' => $validated['customer_phone'],
+                'address' => $validated['customer_address'],
+                'batik_type' => $validated['batik_type'],
+                'fabric_size' => $validated['fabric_size'],
+                'deadline' => $validated['deadline'],
+                'special_notes' => $validated['special_notes'],
+            ])
+        ]);
+
+        return redirect()->route('production.index')->with('success', 'Pesanan produksi berhasil dibuat!');
+    }
+
+    private function calculatePrice($product, $batikType, $quantity)
+    {
+        $basePrice = 50000; // Harga dasar per unit
+
+        // Multiplier berdasarkan jenis batik
+        $typeMultiplier = [
+            'Batik Tulis' => 3.0,
+            'Batik Cap' => 2.0,
+            'Batik Printing' => 1.0,
+        ];
+
+        // Discount berdasarkan quantity
+        $quantityDiscount = 1.0;
+        if ($quantity >= 100) {
+            $quantityDiscount = 0.85; // 15% discount
+        } elseif ($quantity >= 50) {
+            $quantityDiscount = 0.90; // 10% discount
+        } elseif ($quantity >= 25) {
+            $quantityDiscount = 0.95; // 5% discount
         }
 
-        // Hitung total harga
-        $totalPrice = $request->quantity * $product->base_price;
+        return $basePrice * ($typeMultiplier[$batikType] ?? 1.0) * $quantityDiscount;
+    }
 
-        Production::create([
-            'production_status' => 'diterima',
-            'quantity' => $request->quantity,
-            'price_per_unit' => $product->base_price,
-            'total_price' => $totalPrice,
-            'payment_status' => 'unpaid',
-            'convection_user_id' => $convectionUser->id,
-            'user_id' => Auth::id(),
-            'design_id' => $design->id,
-            'product_id' => $product->id,
+    public function show(Production $production)
+    {
+        $production->load(['design', 'konveksi', 'product']);
+        
+        return Inertia::render('User/ProductionDetail', [
+            'production' => $production
         ]);
-
-        // Arahkan ke riwayat pesanan setelah berhasil
-        return redirect()->route('dashboard')->with('success', 'Pesanan produksi berhasil dibuat!');
     }
 }
