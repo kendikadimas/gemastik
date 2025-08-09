@@ -157,14 +157,14 @@ export default function Motif({ motifs: initialMotifs = [], filters = {} }) {
               </div>
 
               {/* Time Badge - Always Visible */}
-              <div className="absolute top-4 right-4 z-10">
+              {/* <div className="absolute top-4 right-4 z-10">
                 <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-white/90 text-gray-700 backdrop-blur-md shadow-lg flex items-center gap-1">
                   <Clock className="w-3 h-3" />
                   {motif.timeAgo}
                 </span>
-              </div>
+              </div> */}
 
-              {/* Color Palette - Always Visible */}
+              {/* Color Palette - Always Visible
               <div className="absolute bottom-4 left-4 z-10 flex gap-1">
                 {motif.colors.map((color, index) => (
                   <div
@@ -173,7 +173,7 @@ export default function Motif({ motifs: initialMotifs = [], filters = {} }) {
                     style={{ backgroundColor: color }}
                   />
                 ))}
-              </div>
+              </div> */}
 
               {/* Hover Overlay with Content */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6">

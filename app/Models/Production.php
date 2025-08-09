@@ -35,7 +35,7 @@ class Production extends Model
         return $this->belongsTo(Design::class);
     }
 
-    public function konveksi()
+    public function convection()
     {
         return $this->belongsTo(Konveksi::class, 'convection_user_id', 'id');
     }

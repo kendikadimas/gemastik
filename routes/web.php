@@ -62,18 +62,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('BatikGeneratorPage');
     })->name('batik.generator');
 
-    // // Production routes
-    // Route::get('/production', [ProductionController::class, 'index'])->name('production.index');
-    // Route::get('/production/create', [ProductionController::class, 'create'])->name('production.create');
-    // Route::post('/production', [ProductionController::class, 'store'])->name('production.store');
-    // Route::get('/production/{production}', [ProductionController::class, 'show'])->name('production.show');
-
-    // Alias untuk backward compatibility
-    Route::get('/produksi', [ProductionController::class, 'index'])->name('produksi.index');
-    Route::get('/produksi/create', [ProductionController::class, 'create'])->name('produksi.create');
-    Route::post('/produksi', [ProductionController::class, 'store'])->name('produksi.store');
-    Route::get('/produksi/{production}', [ProductionController::class, 'show'])->name('produksi.show');
-
+    Route::get('/produksi', [ProductionController::class, 'index'])->name('production.index');
+    Route::post('/produksi', [ProductionController::class, 'store'])->name('production.store');
+    Route::get('/produksi/pesan', [ProductionController::class, 'create'])->name('production.create');
+    Route::get('/konveksi', [KonveksiController::class, 'index'])->name('konveksi.index');
+    Route::get('/konveksi/{konveksi}', [KonveksiController::class, 'show'])->name('konveksi.show');    
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

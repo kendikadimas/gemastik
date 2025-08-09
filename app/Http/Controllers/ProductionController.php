@@ -14,66 +14,55 @@ class ProductionController extends Controller
 {
     public function index()
     {
-        $productions = Production::with(['design', 'konveksi', 'product'])
-            ->where('user_id', Auth::id())
+        $user = Auth::user();
+
+        // Ambil data paginasi untuk riwayat produksi
+        $productions = $user->productionOrders()
+            ->with(['design', 'product', 'convection.user'])
             ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($production) {
-                return [
-                    'id' => $production->id,
-                    'design' => $production->design,
-                    'konveksi' => $production->konveksi,
-                    'product' => $production->product,
-                    'quantity' => $production->quantity,
-                    'total_price' => $production->total_price,
-                    'production_status' => $production->production_status,
-                    'payment_status' => $production->payment_status,
-                    'customer_data' => $production->customer_data,
-                    'created_at' => $production->created_at,
-                    'status_color' => $production->status_color,
-                    'status_label' => $production->status_label,
-                    'progress_percentage' => $production->progress_percentage,
-                ];
-            });
+            ->paginate(10);
 
-        $stats = [
-            'total_orders' => Production::where('user_id', Auth::id())->count(),
-            'in_progress' => Production::where('user_id', Auth::id())->where('production_status', 'diproses')->count(),
-            'completed' => Production::where('user_id', Auth::id())->where('production_status', 'diterima_selesai')->count(),
-            'total_value' => Production::where('user_id', Auth::id())->sum('total_price'),
-        ];
+        // Ambil data untuk kartu statistik
+        $totalSpent = $user->productionOrders()->sum('total_price');
+        $completedOrders = $user->productionOrders()->where('production_status', 'diterima_selesai')->count();
 
-        $designs = Design::where('user_id', Auth::id())->get();
-        $konveksis = Konveksi::where('is_verified', true)->get();
-        $products = Product::all();
+        // Ambil data yang dibutuhkan untuk form "Create Order"
+        $designs = $user->designs()->orderBy('updated_at', 'desc')->get();
+        $konveksis = Konveksi::all(); // Ambil semua konveksi
+        $products = Product::all(); // Ambil semua produk
 
         return Inertia::render('User/Produksi', [
             'productions' => $productions,
-            'stats' => $stats,
+            'totalSpent' => $totalSpent,
+            'completedOrders' => $completedOrders,
             'designs' => $designs,
             'konveksis' => $konveksis,
-            'products' => $products
+            'products' => $products,
         ]);
     }
 
     public function create(Request $request)
     {
-        $designs = Design::where('user_id', Auth::id())->get();
-        $konveksis = Konveksi::where('is_verified', true)->get();
+        $designs = Auth::user()->designs()->orderBy('updated_at', 'desc')->get();
         $products = Product::all();
-
-        // Jika ada convection_id dari parameter
+        
+        // ✨ AWAL PERBAIKAN LOGIKA ✨
         $selectedConvection = null;
-        if ($request->convection_id) {
-            $selectedConvection = Konveksi::find($request->convection_id);
-        }
+        $convections = [];
 
+        // Jika ada ID konveksi dari URL, cari data konveksi tersebut
+        if ($request->has('konveksi_id')) {
+            $selectedConvection = Konveksi::findOrFail($request->query('konveksi_id'));
+        } else {
+            // Jika tidak, ambil semua data konveksi untuk dropdown
+            $convections = Konveksi::all();
+        }
+        
         return Inertia::render('User/CreateProduction', [
             'designs' => $designs,
-            'konveksis' => $konveksis,
             'products' => $products,
-            'selectedConvection' => $selectedConvection,
-            'initialConvectionId' => $request->convection_id
+            'convections' => $convections,
+            'selectedConvection' => $selectedConvection, // Kirim data konveksi yang dipilih
         ]);
     }
 
@@ -134,7 +123,7 @@ class ProductionController extends Controller
     ]);
 
     // 5. Arahkan kembali ke halaman riwayat produksi
-    return redirect()->route('produksi.index')->with('success', 'Pesanan berhasil dibuat!');
+    return redirect()->route('production.index')->with('success', 'Pesanan berhasil dibuat!');
     }
 
     private function calculatePrice($product, $batikType, $quantity)

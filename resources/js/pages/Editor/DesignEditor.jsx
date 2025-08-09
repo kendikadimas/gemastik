@@ -104,13 +104,28 @@ export default function DesignEditor({ initialDesign }) {
     };
 
     const handleShow3D = () => {
-        if (!stageRef.current) return;
-        
-        // Ekspor canvas menjadi gambar untuk dijadikan tekstur
-        const patternDataURL = stageRef.current.toDataURL({ pixelRatio: 1 });
-        setPatternFor3D(patternDataURL);
-        setShow3DModal(true);
+    if (!stageRef.current) return;
+
+    const stage = stageRef.current;
+    const scale = stage.scaleX(); // Asumsi scale X dan Y sama
+
+    // Hitung area yang terlihat (viewport) berdasarkan posisi pan dan zoom
+    const exportArea = {
+        x: -stage.x() / scale,
+        y: -stage.y() / scale,
+        width: stage.width() / scale,
+        height: stage.height() / scale,
     };
+
+    // Ekspor hanya area yang terlihat tersebut
+    const dataURL = stage.toDataURL({
+        ...exportArea,
+        pixelRatio: 2 // Gunakan pixelRatio 2 agar tekstur lebih tajam
+    });
+
+    setPatternFor3D(dataURL);
+    setShow3DModal(true);
+};
 
     // Fungsi untuk memperbarui properti objek dari toolbar
     const updateObjectProperties = (id, newAttrs) => {
@@ -236,7 +251,7 @@ export default function DesignEditor({ initialDesign }) {
                         />
                     </aside>
                     {/* Area Canvas */}
-                    <main className="flex-1 flex bg-white rounded-xl shadow-lg p-4 border border-[#F3EDE7]">
+                    <main className="flex-1 flex bg-white rounded-xl shadow-lg border border-[#F3EDE7]">
                         <CanvasArea 
                             objects={canvasObjects} 
                             setObjects={setCanvasObjects}

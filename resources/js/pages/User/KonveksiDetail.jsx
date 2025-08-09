@@ -48,7 +48,7 @@ export default function KonveksiDetail({ konveksi }) {
                             <p className="text-gray-600 leading-relaxed">
                                 {konveksi.description || 'Informasi detail tentang konveksi ini belum tersedia.'}
                             </p>
-                            <Link 
+                             <Link 
                                 href={route('production.create', { konveksi_id: konveksi.id })}
                                 className="inline-block mt-6 px-6 py-3 bg-[#BA682A] text-white font-bold rounded-lg hover:bg-[#A0522D] transition-colors shadow-md"
                             >
