@@ -24,6 +24,10 @@ export default function DesignEditor({ initialDesign }) {
     const [isSaving, setIsSaving] = useState(false);
     const [motifs, setMotifs] = useState([]);
     const [loadingMotifs, setLoadingMotifs] = useState(true);
+    const [activeTool, setActiveTool] = useState('select');
+    const [brushColor, setBrushColor] = useState('#000000');
+    const [brushWidth, setBrushWidth] = useState(5);
+    const [eraserWidth, setEraserWidth] = useState(10);
 
     const stageRef = useRef();
     const [show3DModal, setShow3DModal] = useState(false);
@@ -104,28 +108,20 @@ export default function DesignEditor({ initialDesign }) {
     };
 
     const handleShow3D = () => {
-    if (!stageRef.current) return;
+        if (!stageRef.current) return;
 
-    const stage = stageRef.current;
-    const scale = stage.scaleX(); // Asumsi scale X dan Y sama
-
-    // Hitung area yang terlihat (viewport) berdasarkan posisi pan dan zoom
-    const exportArea = {
-        x: -stage.x() / scale,
-        y: -stage.y() / scale,
-        width: stage.width() / scale,
-        height: stage.height() / scale,
+        // Ekspor hanya area canvas 800x600, mulai dari (0,0)
+        const patternDataURL = stageRef.current.toDataURL({
+            x: 0,
+            y: 0,
+            width: 800,
+            height: 600,
+            mimeType: 'image/png',
+            pixelRatio: 1
+        });
+        setPatternFor3D(patternDataURL);
+        setShow3DModal(true);
     };
-
-    // Ekspor hanya area yang terlihat tersebut
-    const dataURL = stage.toDataURL({
-        ...exportArea,
-        pixelRatio: 2 // Gunakan pixelRatio 2 agar tekstur lebih tajam
-    });
-
-    setPatternFor3D(dataURL);
-    setShow3DModal(true);
-};
 
     // Fungsi untuk memperbarui properti objek dari toolbar
     const updateObjectProperties = (id, newAttrs) => {
@@ -203,35 +199,39 @@ export default function DesignEditor({ initialDesign }) {
     return (
         <>
             <Head title="Editor Desain Batik" />
-            <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 font-sans">
-                <header className="flex items-center justify-between px-6 py-4 bg-white shadow sticky top-0 z-20 border-b">
-                    <Link 
-                        href="/dashboard"
-                        className="flex items-center gap-2 bg-[#F8F5F2] hover:bg-[#F3EDE7] text-[#BA682A] px-3 py-2 rounded-lg transition"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        <span className="text-sm font-semibold">Kembali</span>
-                    </Link>
-                    <h1 className="text-xl font-bold text-[#BA682A] tracking-tight">Canvas Batik</h1>
+            <div className="flex flex-col min-h-screen bg-white font-sans">
+                <header className="flex items-center justify-between px-8 py-5 bg-white border-b border-gray-200 rounded-b-xl">
                     <div className="flex items-center gap-3">
+                        <Link 
+                            href="/dashboard"
+                            className="flex items-center gap-2 bg-[#F8F5F2] hover:bg-[#F3EDE7] text-[#BA682A] px-3 py-2 rounded-lg transition font-semibold shadow"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                            <span>Kembali</span>
+                        </Link>
+                        <span className="ml-4 px-3 py-1 rounded-full bg-[#FFF7ED] text-[#BA682A] font-bold text-lg tracking-tight shadow">
+                            Canvas Batik Editor
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-4">
                         <input 
                             type="text" 
                             value={designName} 
                             onChange={(e) => setDesignName(e.target.value)}
-                            className="border border-[#D2691E] rounded-lg px-3 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#D2691E] w-48"
+                            className="border border-[#D2691E] rounded-lg px-4 py-2 text-base text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#D2691E] w-56 shadow"
                             placeholder="Nama desain"
                         />
                         <button 
                             onClick={handleShow3D} 
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg transition flex items-center gap-1 shadow"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition flex items-center gap-2 font-semibold shadow"
                         >
+                            <ArrowRight className="w-5 h-5" />
                             Preview 3D
-                            <ArrowRight className="w-4 h-4" />
                         </button>
                         <button 
                             onClick={handleSave}
                             disabled={isSaving}
-                            className={`px-4 py-1.5 rounded-lg transition text-sm font-semibold shadow ${
+                            className={`px-4 py-2 rounded-lg transition font-semibold shadow ${
                                 isSaving 
                                     ? 'bg-gray-400 text-white cursor-not-allowed' 
                                     : 'bg-[#D2691E] hover:bg-[#A0522D] text-white'
@@ -264,6 +264,14 @@ export default function DesignEditor({ initialDesign }) {
                     {/* Sidebar Kanan */}
                     <aside className="w-72 bg-white rounded-xl shadow-lg p-4 flex flex-col border border-[#F3EDE7]">
                         <PropertiesToolbar 
+                            activeTool={activeTool}
+                            setActiveTool={setActiveTool}
+                            brushColor={brushColor}
+                            setBrushColor={setBrushColor}
+                            brushWidth={brushWidth}
+                            setBrushWidth={setBrushWidth}
+                            eraserWidth={eraserWidth}
+                            setEraserWidth={setEraserWidth}
                             selectedObject={selectedObject}
                             onUpdate={updateObjectProperties}
                         />

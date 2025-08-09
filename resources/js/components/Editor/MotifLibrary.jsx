@@ -16,7 +16,7 @@ export default function MotifLibrary({ motifs = [], loading = false, onRefresh }
     };
 
     return (
-        <div>
+        <div className=''>
             <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-black">Pustaka Motif</h3>
                 {onRefresh && (
