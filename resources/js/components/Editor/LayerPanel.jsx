@@ -4,13 +4,13 @@ export default function LayerPanel({ objects, selectedId, onSelect, onClear }) {
     return (
         <div className="mt-6 text-black">
             <div className="flex items-center justify-between mb-2">
-                <h3 className="font-bold">Layers</h3>
+                <h3 className="font-bold">Posisi</h3>
                 <button
                     onClick={onClear}
                     className="text-xs text-red-600 hover:text-red-800"
                     title="Hapus semua motif dari canvas"
                 >
-                    Clear All
+                    Hapus Semua
                 </button>
             </div>
             <div className="bg-gray-100 rounded p-2 max-h-48 overflow-y-auto">

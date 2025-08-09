@@ -9,14 +9,17 @@ export default function Sidebar() {
       href: '/dashboard',
       icon: url === '/dashboard' ? '/images/sideicon/home-active.svg' : '/images/sideicon/home.png',
     },
-    { name: 'Motif', href: '/motif', icon: '/images/sideicon/motif.svg' },
+    { name: 'Motif', href: '/motif', 
+      icon: url === '/motif' ? '/images/sideicon/motif-active.svg' : '/images/sideicon/motif.svg' },
     {
       name: 'Konveksi',
       href: '/konveksi',
       icon: url.startsWith('/konveksi') ? '/images/sideicon/konveksi-active.svg' : '/images/sideicon/konveksi.png',
     },
-    { name: 'Produksi', href: '/produksi', icon: '/images/sideicon/produksi.png' },
-    { name: 'Bantuan', href: '/bantuan', icon: '/images/sideicon/bantuan.png' },
+    { name: 'Produksi', href: '/produksi', 
+      icon: url.startsWith('/produksi') ? '/images/sideicon/produksi-active.svg' : '/images/sideicon/produksi.png' },
+    { name: 'Bantuan', href: '/bantuan', 
+      icon: url === '/bantuan' ? '/images/sideicon/bantuan-active.svg' : '/images/sideicon/bantuan.png' },
   ];
 
   return (

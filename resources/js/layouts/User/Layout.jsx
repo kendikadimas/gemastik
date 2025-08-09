@@ -1,12 +1,47 @@
 import Sidebar from './Sidebar';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { Bell, Settings, User, LogOut, ChevronDown } from 'lucide-react';
+import { Bell, Settings, User, LogOut, ChevronDown, ChevronsRight } from 'lucide-react';
 import { Menu, MenuButton, MenuItem, MenuItems, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 
+const Breadcrumbs = () => {
+    const { url } = usePage();
+    const pathname = url.split('?')[0];    
+    const segments = pathname.slice(1).split('/').filter(Boolean);
+
+    const formatSegment = (segment) => {
+        if (!isNaN(segment)) return "Detail";
+        return segment
+            .replace(/-/g, ' ')
+            .replace(/\b\w/g, char => char.toUpperCase()); 
+    };
+
+    return (
+        <nav className="flex items-center text-sm font-medium text-gray-500">
+            <Link href="/dashboard" className="hover:text-[#BA682A]">Home</Link>
+            {segments.map((segment, index) => {
+                const href = '/' + segments.slice(0, index + 1).join('/');
+                const isLast = index === segments.length - 1;
+
+                return (
+                    <Fragment key={index}>
+                        <ChevronsRight className="w-4 h-4 mx-1" />
+                        <Link 
+                            href={href} 
+                            className={isLast ? "text-[#BA682A] font-semibold" : "hover:text-gray-700"}
+                        >
+                            {formatSegment(segment)}
+                        </Link>
+                    </Fragment>
+                );
+            })}
+        </nav>
+    );
+};
+
 export default function UserLayout({ children, title }) {
   // Ambil data user dari props global Inertia
-  const { auth } = usePage().props;
+  const { auth, url } = usePage().props;
   const user = auth.user;
 
   return (
@@ -20,11 +55,11 @@ export default function UserLayout({ children, title }) {
             style={{ height: '97px' }}
           >
             <div>
-              {/* Sapa pengguna yang sedang login */}
-              <h1 className="text-2xl font-bold" style={{ color: '#BA682A' }}>
-                Hi, {user.name}! Selamat Membatik
-              </h1>
+              <h1 className="text-2xl font-bold text-[#BA682A] mb-1">{title}</h1>
+              {/* Sembunyikan breadcrumbs hanya di halaman dashboard utama */}
+              {url !== '/dashboard' && <Breadcrumbs />}
             </div>
+
             <div className="flex items-center gap-4">
               <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                 <Bell className="w-5 h-5 text-gray-400" />

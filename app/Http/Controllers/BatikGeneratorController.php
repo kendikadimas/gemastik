@@ -23,7 +23,7 @@ class BatikGeneratorController extends Controller
             }
             
             // Kita tetap perkaya promptnya sedikit agar hasilnya lebih bagus
-            $finalPrompt = "masterpiece, best quality, a traditional Indonesian batik motif showing ${userPrompt}, vector art, clean lines, sogan color palette (brown, indigo, cream), on a plain white background";
+            $finalPrompt = "masterpiece, best quality, a traditional Indonesian batik motif showing ${userPrompt}, vector art, clean lines";
 
             Log::info('Sending to Hugging Face: ' . $finalPrompt);
 

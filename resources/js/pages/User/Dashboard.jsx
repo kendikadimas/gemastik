@@ -1,5 +1,5 @@
 import UserLayout from '@/layouts/User/Layout';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
   Plus,
   Filter,
@@ -15,8 +15,10 @@ import {
 import { useState } from 'react';
 
 export default function Dashboard({ designs = [] }) {
+  const { auth } = usePage().props;
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState(0);
+  const user = auth.user;
 
   const filterItems = ['Semua', 'Terbaru', 'Favorit', 'Draft'];
 
@@ -54,9 +56,10 @@ export default function Dashboard({ designs = [] }) {
       {/* Header dengan Action Cards */}
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#BA682A' }}>Batik Saya</h1>
-          <p className="text-gray-600 text-sm">
-            Selamat datang kembali, berikut batik yang sudah anda buat. ({filteredDesigns.length} desain)
+          {/* Judul 'Batik Saya' sekarang akan ditampilkan oleh Layout dari prop 'title' */}
+          {/* Tampilkan sapaan di bawahnya */}
+          <p className="text-gray-600 text-lg font-regular mb-2">
+            Hi, <span className='text-[#BA682A]'>{user.name}</span>! Selamat datang kembali.<br /> Kamu sudah membuat : <span className='text-[#BA682A]'>{filteredDesigns.length} desain</span>
           </p>
         </div>
         

@@ -19,22 +19,22 @@ const Pagination = ({ links = [] }) => {
 // Komponen Badge Status
 const StatusBadge = ({ status }) => {
     const statusMap = {
-        'diterima_selesai': { text: 'Selesai', icon: <CheckCircle className="w-4 h-4" /> },
-        'diproses': { text: 'Proses', icon: <Clock className="w-4 h-4" /> },
-        'ditolak': { text: 'Ditolak', icon: <XCircle className="w-4 h-4" /> },
-        'dikirim': { text: 'Dikirim', icon: <Package className="w-4 h-4" /> },
-        'diterima': { text: 'Diterima', icon: <Inbox className="w-4 h-4" /> },
+        'diterima_selesai': { text: 'Selesai', icon: <CheckCircle className="w-4 h-4" />, color: 'bg-green-100 text-green-700' },
+        'diproses': { text: 'Proses', icon: <Clock className="w-4 h-4" />, color: 'bg-yellow-100 text-yellow-700' },
+        'ditolak': { text: 'Ditolak', icon: <XCircle className="w-4 h-4" />, color: 'bg-red-100 text-red-700' },
+        'dikirim': { text: 'Dikirim', icon: <Package className="w-4 h-4" />, color: 'bg-blue-100 text-blue-700' },
+        'diterima': { text: 'Diterima', icon: <Inbox className="w-4 h-4" />, color: 'bg-gray-100 text-gray-700' },
     };
-    const { text, icon } = statusMap[status] || statusMap['diterima'];
-    return <span className="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-700">{icon} {text}</span>;
+    const { text, icon, color } = statusMap[status] || statusMap['diterima'];
+    return <span className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold rounded-full ${color}`}>{icon} {text}</span>;
 };
 
 export default function DashboardView({ productions, totalSpent, completedOrders, onCreateNew }) {
   return (
-    <div className="p-6">
+    <div className="px-6 py-2">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Riwayat Produksi Anda</h1>
+        <h1 className="text-3xl font-bold text-[#BA682A]">Riwayat Produksi Anda</h1>
         <button
           onClick={onCreateNew}
           className="px-6 py-3 bg-[#BA682A] text-white rounded-xl hover:bg-[#9d5a24] transition-colors flex items-center gap-2"
