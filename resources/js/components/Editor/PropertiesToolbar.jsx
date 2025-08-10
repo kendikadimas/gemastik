@@ -16,7 +16,7 @@ const PropertyInput = ({ label, value, onChange, type = 'number' }) => (
 export default function PropertiesToolbar({ selectedObject, onUpdate }) {
     if (!selectedObject) {
         return (
-            <div className='text-black'>
+            <div className='text-[#BA682A]'>
                 <h3 className="font-bold mb-4">Properti</h3>
                 <p className="text-sm text-gray-500">Pilih sebuah objek di canvas untuk diedit.</p>
             </div>

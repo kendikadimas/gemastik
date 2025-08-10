@@ -25,20 +25,14 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-white border-r min-h-screen flex flex-col shadow-sm">
       {/* Logo */}
-      <div className="px-6 py-6 border-b border-gray-100" style={{ height: '97px' }}>
-        <div className="flex items-center gap-3 h-full">
-          <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center">
-            <img
-              src="/images/lolares.png"
-              alt="Larasena Logo"
-              className="w-full h-full object-contain"
-            />
-          </div>
-          <div>
-            <h1 className="font-bold text-xl text-brown-800">Larasena</h1>
-          </div>
-        </div>
+      <div className="px-6 pt-3 flex items-center h-24 w-64 border-b border-gray-100">
+          <img
+            src="/images/LARASENA.png"
+            alt="Larasena Logo"
+            className="object-contain h-46 hover:transform hover:scale-105 transition-transform duration-300"
+          />
       </div>
+
 
       {/* Menu Items */}
       <nav className="flex-1 p-4 space-y-1">
@@ -70,4 +64,5 @@ export default function Sidebar() {
     </aside>
   );
 }
+
 

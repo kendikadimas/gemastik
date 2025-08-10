@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function LayerPanel({ objects, selectedId, onSelect, onClear }) {
     return (
-        <div className="mt-6 text-black">
+        <div className="mt-6 text-[#BA682A]">
             <div className="flex items-center justify-between mb-2">
                 <h3 className="font-bold">Posisi</h3>
                 <button

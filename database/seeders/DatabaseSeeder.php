@@ -18,10 +18,10 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             // UserSeeder::class,
-            // MotifSeeder::class,
+            MotifSeeder::class,
             // KonveksiSeeder::class,
             // KonveksiDataSeeder::class,
-            ProductSeeder::class,
+            // ProductSeeder::class,
         ]);
     }
 }

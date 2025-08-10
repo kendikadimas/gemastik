@@ -5,7 +5,7 @@ import * as THREE from 'three';
 
 // Daftar model yang tersedia
 const MODEL_LIST = [
-    { label: 'Kemeja Lengan Panjang', value: 'kemeja', file: '/models/white_shirt.glb' },
+    { label: 'Kemeja', value: 'kemeja', file: '/models/white_shirt.glb' },
     { label: 'Kaos', value: 'kaos', file: '/models/kaos.glb' },
     { label: 'Polo', value: 'polo', file: '/models/polo.glb' },
     { label: 'Dress', value: 'dress', file: '/models/dress.glb' },
@@ -31,7 +31,6 @@ function Model({ patternUrl, cameraControlsRef, modelFile }) {
 
     const meshNames = Object.keys(nodes).filter(name => nodes[name]?.geometry);
 
-    // ✨ EFEK UNTUK OTOMATIS MEMUSATKAN KAMERA ✨
     useEffect(() => {
         if (groupRef.current && cameraControlsRef.current) {
             // Fungsi ini akan otomatis mengatur posisi dan zoom kamera agar pas dengan model
@@ -67,21 +66,19 @@ export default function MockupViewer3D({ patternUrl }) {
     };
 
     return (
-        <div className="w-full h-full bg-gray-200 relative">
+        <div className="w-full h-full bg-gray-400 rounded-lg relative z-0">
             {/* Dropdown model */}
-            <div className="absolute top-4 left-4 z-50">
-                <select
-                    value={selectedModel.value}
-                    onChange={e => {
-                        const found = MODEL_LIST.find(m => m.value === e.target.value);
-                        if (found) setSelectedModel(found);
-                    }}
-                    className="px-3 py-2 rounded-lg border border-gray-300 bg-white shadow"
-                >
-                    {MODEL_LIST.map(model => (
-                        <option key={model.value} value={model.value}>{model.label}</option>
-                    ))}
-                </select>
+            <div className="absolute top-4 left-4 z-50 grid grid-cols-2 gap-2">
+                {MODEL_LIST.map(model => (
+                    <button
+                        key={model.value}
+                        type="button"
+                        className={`px-4 py-2 rounded-lg ${selectedModel.value === model.value ? 'bg-[#BA682A] text-white' : 'bg-white text-black border-none hover:bg-[#B5B5B5]'}`}
+                        onClick={() => setSelectedModel(model)}
+                    >
+                        {model.label}
+                    </button>
+                ))}
             </div>
             <Canvas>
                 <Suspense fallback={null}>
@@ -97,13 +94,13 @@ export default function MockupViewer3D({ patternUrl }) {
                 <CameraControls ref={cameraControlsRef} />
             </Canvas>
             {/* Tombol Kontrol Kamera */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white bg-opacity-70 backdrop-blur-sm p-2 rounded-lg flex gap-2 shadow-lg">
-                <button onClick={() => setView([0, 0, 3])} className="px-3 py-1 rounded hover:bg-gray-200">Depan</button>
-                <button onClick={() => setView([0, 0, -3])} className="px-3 py-1 rounded hover:bg-gray-200">Belakang</button>
-                <button onClick={() => setView([-3, 0, 0])} className="px-3 py-1 rounded hover:bg-gray-200">Kiri</button>
-                <button onClick={() => setView([3, 0, 0])} className="px-3 py-1 rounded hover:bg-gray-200">Kanan</button>
-                <button onClick={() => setView([0, 3, 0])} className="px-3 py-1 rounded hover:bg-gray-200">Atas</button>
-            </div>
+            {/* <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-70 backdrop-blur-sm p-2 rounded-lg flex gap-2 shadow-lg">
+                <button onClick={() => setView([0, 0, 0])} className="px-3 py-1 rounded hover:bg-gray-200">Depan</button>
+                <button onClick={() => setView([0, Math.PI, 0])} className="px-3 py-1 rounded hover:bg-gray-200">Belakang</button>
+                <button onClick={() => setView([0, Math.PI / 2, 0])} className="px-3 py-1 rounded hover:bg-gray-200">Kiri</button>
+                <button onClick={() => setView([0, -Math.PI / 2, 0])} className="px-3 py-1 rounded hover:bg-gray-200">Kanan</button>
+                <button onClick={() => setView([-Math.PI / 4, 0, 0])} className="px-3 py-1 rounded hover:bg-gray-200">Atas</button>
+            </div> */}
         </div>
     );
 }

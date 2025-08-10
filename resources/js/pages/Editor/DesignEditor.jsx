@@ -199,8 +199,8 @@ export default function DesignEditor({ initialDesign }) {
     return (
         <>
             <Head title="Editor Desain Batik" />
-            <div className="flex flex-col min-h-screen bg-white font-sans">
-                <header className="flex items-center justify-between px-8 py-5 bg-white border-b border-gray-200 rounded-b-xl">
+            <div className="flex flex-col h-screen bg-white font-sans">
+                <header className="flex items-center justify-between px-8 py-5 bg-white border b rounded-b-xl">
                     <div className="flex items-center gap-3">
                         <Link 
                             href="/dashboard"
@@ -225,8 +225,8 @@ export default function DesignEditor({ initialDesign }) {
                             onClick={handleShow3D} 
                             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition flex items-center gap-2 font-semibold shadow"
                         >
-                            <ArrowRight className="w-5 h-5" />
                             Preview 3D
+                            <ArrowRight className="w-5 h-5" />
                         </button>
                         <button 
                             onClick={handleSave}
@@ -241,9 +241,9 @@ export default function DesignEditor({ initialDesign }) {
                         </button>
                     </div>
                 </header>   
-                <div className="flex flex-1 gap-4 px-6 py-4">
+                <div className="flex flex-grow overflow-hidden gap-4 px-6 py-4">
                     {/* Sidebar Kiri */}
-                    <aside className="w-64 bg-white rounded-xl shadow-lg p-4 flex flex-col border border-[#F3EDE7]">
+                    <aside className="w-64 bg-white rounded-xl overflow-y-auto shadow-lg p-4 flex flex-shrink-0 border border-[#F3EDE7]">
                         <MotifLibrary 
                             motifs={motifs} 
                             loading={loadingMotifs}
@@ -262,7 +262,7 @@ export default function DesignEditor({ initialDesign }) {
                         />
                     </main>
                     {/* Sidebar Kanan */}
-                    <aside className="w-72 bg-white rounded-xl shadow-lg p-4 flex flex-col border border-[#F3EDE7]">
+                    <aside className="w-72 bg-white rounded-xl shadow-lg p-4 flex flex-col flex-shrink-0 border border-[#F3EDE7]">
                         <PropertiesToolbar 
                             activeTool={activeTool}
                             setActiveTool={setActiveTool}
@@ -292,9 +292,9 @@ export default function DesignEditor({ initialDesign }) {
                         <div className="bg-white rounded-xl shadow-2xl w-3/4 h-3/4 p-6 relative flex flex-col z-50">
                             <button 
                                 onClick={() => setShow3DModal(false)}
-                                className="z-100 absolute top-4 right-4 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow transition"
+                                className="absolute z-50 top-4 right-4 bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow transition"
                             >
-                                ×
+                                X
                             </button>
                             <MockupViewer3D patternUrl={patternFor3D} />
                         </div>
